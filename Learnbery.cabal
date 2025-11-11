@@ -20,7 +20,32 @@ common config
 executable Learnbery
     import:           config
     main-is:          Main.hs
-    -- other-modules:
-    -- other-extensions:
-    build-depends:    base ^>=4.19.2.0
+    other-modules:
+                      Config
+    default-extensions:
+                        TemplateHaskell
+    build-depends:    
+                        aeson,
+                        base,
+                        --base64-bytestring,
+                        --bytestring,
+                        containers,
+                        --directory,
+                        entropy,
+                        -- exceptions,
+                        --filepath,
+                        http-types,
+                        lens,
+                        lucid,
+                        mtl,
+                        -- stm,
+                        text,
+                        -- time,
+                        wai,
+                        -- wai-app-static, 
+                        -- wai-extra, 
+                        -- wai-websockets, 
+                        warp,
+                        -- warp-tls, 
+                        yaml
     hs-source-dirs:   src
