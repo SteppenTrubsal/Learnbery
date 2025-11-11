@@ -21,9 +21,11 @@ executable Learnbery
     import:           config
     main-is:          Main.hs
     other-modules:
-                      Config
+                      Config,
+                      Server
     default-extensions:
-                        TemplateHaskell
+                        TemplateHaskell,
+                        OverloadedStrings
     build-depends:    
                         aeson,
                         base,
