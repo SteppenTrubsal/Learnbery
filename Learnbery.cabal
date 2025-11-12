@@ -22,7 +22,8 @@ executable Learnbery
     main-is:          Main.hs
     other-modules:
                       Config,
-                      Server
+                      Server,
+                      HTML.Main
     default-extensions:
                         TemplateHaskell,
                         OverloadedStrings
@@ -33,7 +34,6 @@ executable Learnbery
                         --bytestring,
                         containers,
                         --directory,
-                        entropy,
                         -- exceptions,
                         --filepath,
                         http-types,
