@@ -1,12 +1,27 @@
 module Server where
 
+import           Control.Lens
+
+import qualified Network.Wai.Handler.Warp as W
 import           Network.Wai
-import           Network.HTTP.Types
-import           Lucid
-import           Data.Text.Lazy.Encoding (encodeUtf8)
 
-import           HTML.Main
+import           Server.Core
+import           Server.Router
+import           Config
 
-app :: Application
-app _ res =
-  res $ responseLBS status200 [("Content-Type", "text/html; charset=utf-8")] (encodeUtf8 $ renderText bookPage)
+-- app :: Application
+-- app _ res =
+--   res $ responseLBS status200 [("Content-Type", "text/html; charset=utf-8")] (encodeUtf8 $ renderText bookPage)
+
+launch :: IO ()
+launch = do
+  conf <- loadConf
+  putStrLn $ "Starting server on " ++ show (conf ^. port)
+  let
+    appEnv = AppEnv conf
+    app    = mkApplication appEnv
+  W.run (conf ^. port) app
+
+mkApplication :: AppEnv -> Application
+mkApplication env req res = do
+  runApp env (router req res)

@@ -22,8 +22,8 @@ executable Learnbery
     main-is:          Main.hs
     other-modules:
                       Config,
-                      Server,
-                      HTML.Main
+                      Server, Server.Core, Server.Router, Server.Utils,
+                      HTML.Main, HTML.Error
     default-extensions:
                         TemplateHaskell,
                         OverloadedStrings
@@ -31,7 +31,7 @@ executable Learnbery
                         aeson,
                         base,
                         --base64-bytestring,
-                        --bytestring,
+                        bytestring,
                         containers,
                         --directory,
                         -- exceptions,
@@ -44,7 +44,7 @@ executable Learnbery
                         text,
                         -- time,
                         wai,
-                        -- wai-app-static, 
+                        wai-app-static, 
                         -- wai-extra, 
                         -- wai-websockets, 
                         warp,
