@@ -2,7 +2,7 @@
 _Like learning + library_  
 Main goal - make website for educational purposes  
 Needed:  
-[ ] Basic site  
+[x] Basic site  
 [ ] Prettify with fancy CSS  
 [ ] Dynamics with JS  
 [ ] Fancy JS  
