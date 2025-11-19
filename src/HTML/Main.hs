@@ -1,6 +1,7 @@
 module HTML.Main where
 
-import Lucid
+import qualified Data.Text as T
+import           Lucid
 
 bookPage :: Html ()
 bookPage = doctypehtml_ $ do
@@ -11,6 +12,7 @@ bookPage = doctypehtml_ $ do
 
     link_ [rel_ "stylesheet", href_ "css/bootstrap.min.css"]
     link_ [rel_ "stylesheet", href_ "css/main.css"]
+    script_ [type_ "module", src_ "js/app/init.js"] T.empty
 
   body_ [id_ "top", class_ "d-flex flex-column min-vh-100 bg-dark text-light"] $ do
     siteHeader
@@ -43,7 +45,8 @@ mainContent =
       div_ [class_ "row g-4"] $ do
 
         article_ [class_ "col-md-6"] $
-          div_ [class_ "card h-100 bg-dark border-secondary"] $ do
+
+          div_ [class_ "card h-100 bg-dark border-secondary", onclick_ "onBookClick('test', this)"] $ do
             div_ [class_ "row g-0"] $ do
               div_ [class_ "col-md-4"] $
                 img_ [ class_ "img-fluid rounded-start"

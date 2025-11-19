@@ -1,4 +1,3 @@
-// router.js
 import { bus } from './bus.js';
 import { BUS_EVENTS, msgEvent } from './types.js';
 

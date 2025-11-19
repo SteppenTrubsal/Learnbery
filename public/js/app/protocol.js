@@ -1,6 +1,6 @@
-import { bus } from './bus.js';
-import { BUS_EVENTS } from './types.js';
-import { ajaxClient } from './ajax.js';
+import { bus } from '../core/bus.js';
+import { BUS_EVENTS } from '../core/types.js';
+import { ajaxClient } from '../core/ajax.js';
 
 class ProtocolHub {
   constructor() {

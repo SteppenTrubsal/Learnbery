@@ -1,4 +1,3 @@
-// bus.js
 class Bus {
   constructor() {
     this.listeners = new Map();

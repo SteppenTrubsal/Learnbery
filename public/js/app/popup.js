@@ -1,74 +1,75 @@
 // popup.js
-import { bus } from './bus.js';
-import { msgEvent } from './types.js';
+import { bus } from '../core/bus.js';
+import { BUS_EVENTS, msgEvent } from '../core/types.js';
 
 class BookDetailsPopup {
   constructor() {
-    this.container = null;
+    this.popupEl = null;   // сам плавающий блок
+    this.anchorEl = null;  // элемент-карточка, рядом с которым показываем попап
+    this.visible = false;
   }
 
   init() {
+    // запоминаем последнюю карточку, по которой кликнули
+    bus.on(BUS_EVENTS.UI.BOOK.CLICK, ({ el }) => {
+      if (el instanceof HTMLElement) {
+        this.anchorEl = el;
+      }
+    });
+
+    // слушаем ответ от сервера с деталями книги
     bus.on(msgEvent('book:details'), ({ payload }) => {
       this.show(payload);
     });
   }
 
-  createContainer() {
-    if (this.container) return;
+  ensurePopupEl() {
+    if (this.popupEl) return;
 
-    const overlay = document.createElement('div');
-    overlay.className = 'book-popup-overlay';
-    // Можно потом стилизовать через CSS
-    overlay.style.position = 'fixed';
-    overlay.style.inset = '0';
-    overlay.style.background = 'rgba(0, 0, 0, 0.6)';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.style.zIndex = '9999';
+    const popup = document.createElement('div');
+    popup.className = 'book-inline-popup';
+    popup.style.position = 'absolute';
+    popup.style.zIndex = '999';
+    popup.style.background = '#ffffff';
+    popup.style.color = '#000000';
+    popup.style.borderRadius = '8px';
+    popup.style.boxShadow = '0 8px 20px rgba(0,0,0,0.25)';
+    popup.style.padding = '1rem';
+    popup.style.boxSizing = 'border-box';
+    popup.style.maxHeight = '80vh';
+    popup.style.overflowY = 'auto';
 
-    const modal = document.createElement('div');
-    modal.className = 'book-popup-modal';
-    modal.style.background = '#fff';
-    modal.style.color = '#000';
-    modal.style.maxWidth = '600px';
-    modal.style.width = '90%';
-    modal.style.borderRadius = '8px';
-    modal.style.padding = '1.5rem';
-    modal.style.boxShadow = '0 10px 30px rgba(0,0,0,0.4)';
-    modal.style.position = 'relative';
+    // простая кнопка закрытия в углу
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.innerText = '×';
+    close.style.position = 'absolute';
+    close.style.top = '0.25rem';
+    close.style.right = '0.5rem';
+    close.style.border = 'none';
+    close.style.background = 'transparent';
+    close.style.fontSize = '1.25rem';
+    close.style.cursor = 'pointer';
 
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.innerText = '×';
-    closeBtn.style.position = 'absolute';
-    closeBtn.style.top = '0.5rem';
-    closeBtn.style.right = '0.75rem';
-    closeBtn.style.border = 'none';
-    closeBtn.style.background = 'transparent';
-    closeBtn.style.fontSize = '1.5rem';
-    closeBtn.style.cursor = 'pointer';
+    close.addEventListener('click', () => this.hide());
 
-    closeBtn.addEventListener('click', () => {
-      this.hide();
-    });
-
-    modal.appendChild(closeBtn);
+    popup.appendChild(close);
 
     const content = document.createElement('div');
-    content.className = 'book-popup-content';
-    modal.appendChild(content);
+    content.className = 'book-inline-popup-content';
+    content.style.paddingTop = '0.5rem';
+    popup.appendChild(content);
 
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    this.container = overlay;
+    document.body.appendChild(popup);
+    this.popupEl = popup;
   }
 
   show(book) {
-    this.createContainer();
+    if (!this.anchorEl) return;
 
-    const content = this.container.querySelector('.book-popup-content');
+    this.ensurePopupEl();
+
+    const content = this.popupEl.querySelector('.book-inline-popup-content');
     if (!content) return;
 
     const title = book.title || book.name || 'Без названия';
@@ -77,19 +78,62 @@ class BookDetailsPopup {
     const description = book.description || book.desc || 'Описание отсутствует';
 
     content.innerHTML = `
-      <h2 style="margin-top: 0;">${escapeHtml(title)}</h2>
-      <p><strong>Автор:</strong> ${escapeHtml(author)}</p>
-      ${year ? `<p><strong>Год издания:</strong> ${escapeHtml(String(year))}</p>` : ''}
-      <p>${escapeHtml(description)}</p>
+      <h3 style="margin: 0 0 0.5rem 0;">${escapeHtml(title)}</h3>
+      <p style="margin: 0 0 0.25rem 0;">
+        <strong>Автор:</strong> ${escapeHtml(author)}
+      </p>
+      ${
+        year
+          ? `<p style="margin: 0 0 0.25rem 0;">
+               <strong>Год издания:</strong> ${escapeHtml(String(year))}
+             </p>`
+          : ''
+      }
+      <p style="margin: 0.5rem 0 0 0;">${escapeHtml(description)}</p>
     `;
 
-    this.container.style.display = 'flex';
+    this.positionNearAnchor();
+    this.popupEl.style.display = 'block';
+    this.visible = true;
   }
 
   hide() {
-    if (this.container) {
-      this.container.style.display = 'none';
+    if (!this.popupEl) return;
+    this.popupEl.style.display = 'none';
+    this.visible = false;
+  }
+
+  positionNearAnchor() {
+    if (!this.anchorEl || !this.popupEl) return;
+
+    const rect = this.anchorEl.getBoundingClientRect();
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+
+    // делаем попап по ширине как карточка
+    this.popupEl.style.width = rect.width + 'px';
+    // высоту сильно не ограничиваем, но можно подрезать по maxHeight через CSS
+
+    // позиционируем справа от карточки с небольшим отступом
+    const gap = 16;
+    let left = rect.right + gap + scrollX;
+    let top = rect.top + scrollY;
+
+    // если не влезаем по ширине — попробуем показать слева
+    const popupRect = this.popupEl.getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+
+    if (left + popupRect.width > viewportWidth - 8) {
+      left = rect.left - popupRect.width - gap + scrollX;
     }
+
+    // чуть подстрахуемся по вертикали, чтобы не уходить за верх
+    if (top < scrollY + 8) {
+      top = scrollY + 8;
+    }
+
+    this.popupEl.style.left = `${left}px`;
+    this.popupEl.style.top = `${top}px`;
   }
 }
 
