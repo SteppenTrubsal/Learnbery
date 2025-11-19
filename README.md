@@ -3,7 +3,7 @@ _Like learning + library_
 Main goal - make website for educational purposes  
 Needed:  
 - [x] Basic site  
-- [ ] Prettify with fancy CSS  
+- [x] Prettify with fancy CSS  
 - [ ] Dynamics with JS  
 - [ ] Fancy JS  
 - [ ] Adding postgre  
