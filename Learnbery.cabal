@@ -31,6 +31,8 @@ executable Learnbery
     build-depends:    
                         aeson,
                         base,
+                        beam-core,
+                        beam-postgres,
                         --base64-bytestring,
                         bytestring,
                         containers,
