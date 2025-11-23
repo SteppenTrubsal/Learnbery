@@ -21,8 +21,9 @@ executable Learnbery
     import:           config
     main-is:          Main.hs
     other-modules:
-                      Config,
+                      Config, Config.BD, Config.Common, Config.Storage,
                       Server, Server.Core, Server.Router, Server.Utils,
+                      Storage.Types,
                       HTML.Main, HTML.Error
     default-extensions:
                         TemplateHaskell,
