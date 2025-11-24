@@ -3,7 +3,7 @@ module Config.Postgre where
 import           Control.Lens
 import           Data.Aeson.TH
 import           Data.Maybe (fromMaybe)
-import           Database.PostgreSQL.Simple
+import           Database.Beam.Postgres
 
 data PostgreConf = PostgreConf
   { _host   :: Maybe String
