@@ -4,10 +4,14 @@ module Server.Core where
 
 import           Control.Monad.Reader
 
+import           Data.Pool
+import           Database.Beam.Postgres
+
 import           Config
 
 data AppEnv = AppEnv
-  { config   :: Config
+  { config  :: Config
+  , bd      :: Pool Connection
   }
 
 newtype App a = App

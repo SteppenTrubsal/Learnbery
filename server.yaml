@@ -2,7 +2,6 @@ common:
   port: 8443
 
 pool:
-  stripes:       1
   keepAlive:    30
   resPerStripe: 10
 

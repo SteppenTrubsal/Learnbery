@@ -43,6 +43,7 @@ executable Learnbery
                         lens,
                         lucid,
                         mtl,
+                        resource-pool,
                         -- stm,
                         text,
                         -- time,

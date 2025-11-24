@@ -4,8 +4,7 @@ import           Control.Lens  (makeLenses)
 import           Data.Aeson.TH
 
 data PoolConf = PoolConf
-  { _stripes      :: Int
-  , _keepAlive    :: Int
+  { _keepAlive    :: Double
   , _resPerStripe :: Int
   }
 makeLenses ''PoolConf
