@@ -2,9 +2,9 @@ common:
   port: 8443
 
 pool:
-  stripes:
-  keepAlive:
-  resPerStripe:
+  stripes:       1
+  keepAlive:    30
+  resPerStripe: 10
 
 postgre:
   host:
