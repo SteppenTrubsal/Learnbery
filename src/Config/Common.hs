@@ -1,6 +1,6 @@
 module Config.Common where
 
-import           Control.Lens         (makeLenses)
+import           Control.Lens  (makeLenses)
 import           Data.Aeson.TH
 
 data CommonConf = CommonConf

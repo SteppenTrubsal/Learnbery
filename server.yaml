@@ -1,6 +1,11 @@
 common:
   port: 8443
 
+pool:
+  stripes:
+  keepAlive:
+  resPerStripe:
+
 postgre:
   host:
   port:

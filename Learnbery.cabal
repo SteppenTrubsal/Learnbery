@@ -36,6 +36,7 @@ executable Learnbery
                         --base64-bytestring,
                         bytestring,
                         containers,
+                        data-default,
                         --directory,
                         -- exceptions,
                         --filepath,

@@ -1,6 +1,6 @@
 module Config.Postgre where
 
-import           Control.Lens         (makeLenses)
+import           Control.Lens  (makeLenses)
 import           Data.Aeson.TH
 
 data PostgreConf = PostgreConf

@@ -7,12 +7,14 @@ import           System.Exit          (die)
 
 import           Config.Common
 import           Config.Postgre
+import           Config.Pool
 
 confPath :: FilePath
 confPath = "server.yaml"
 
 data Config = Config
   { _common  :: CommonConf
+  , _pool    :: PoolConf
   , _postgre :: PostgreConf
   }
 makeLenses ''Config
