@@ -10,8 +10,8 @@ import           Database.Beam.Postgres
 import           Config
 
 data AppEnv = AppEnv
-  { config  :: Config
-  , bd      :: Pool Connection
+  { config :: Config
+  , bdPool :: Pool Connection
   }
 
 newtype App a = App
