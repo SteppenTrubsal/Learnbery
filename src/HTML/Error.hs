@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module HTML.Error where
 
 import           Lucid

@@ -1,1 +1,8 @@
-port: 8443
+common:
+  port: 8443
+
+postgre:
+  host:
+  port:
+  user:
+  passwd:

@@ -5,11 +5,15 @@ import           Data.Aeson.TH
 import qualified Data.Yaml            as Y
 import           System.Exit          (die)
 
+import           Config.Common
+import           Config.Postgre
+
 confPath :: FilePath
 confPath = "server.yaml"
 
 data Config = Config
-  { _port :: Int
+  { _common  :: CommonConf
+  , _postgre :: PostgreConf
   }
 makeLenses ''Config
 $(deriveJSON defaultOptions {fieldLabelModifier = drop 1} ''Config)

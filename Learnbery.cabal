@@ -21,7 +21,7 @@ executable Learnbery
     import:           config
     main-is:          Main.hs
     other-modules:
-                      Config, Config.BD, Config.Common, Config.Storage,
+                      Config, Config.Postgre, Config.Common, Config.Pool, Config.Storage,
                       Server, Server.Core, Server.Router, Server.Utils,
                       Storage.Types,
                       HTML.Main, HTML.Error

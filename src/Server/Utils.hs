@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Server.Utils where
 
 import           Data.ByteString.Lazy (ByteString)
