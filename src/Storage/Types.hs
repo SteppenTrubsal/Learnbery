@@ -1,16 +1,19 @@
-{-# LANGUAGE DeriveAnyClass  #-}
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE FlexibleInstances  #-}
 module Storage.Types where
 
 import           Control.Lens
 
+import           Data.Int
 import           Data.Text
 import           Database.Beam
 import           Database.Beam.Postgres
 
 data AuthorT f = AuthorT
-  { _authorId   :: C f Int
+  { _authorId   :: C f Int32
   , _authorName :: C f Text
   }
   deriving (Generic, Beamable)
@@ -19,12 +22,12 @@ type Author   = AuthorT Identity
 type AuthorId = PrimaryKey AuthorT Identity
 
 instance Table AuthorT where
-  data PrimaryKey AuthorT f = AuthorId (C f Int)
+  data PrimaryKey AuthorT f = AuthorId (C f Int32)
     deriving (Generic, Beamable)
   primaryKey = AuthorId . _authorId
 
 data GenreT f = GenreT
-  { _genreId   :: C f Int
+  { _genreId   :: C f Int32
   , _genreName :: C f Text
   }
   deriving (Generic, Beamable)
@@ -33,16 +36,16 @@ type Genre   = GenreT Identity
 type GenreId = PrimaryKey GenreT Identity
 
 instance Table GenreT where
-  data PrimaryKey GenreT f = GenreId (C f Int)
+  data PrimaryKey GenreT f = GenreId (C f Int32)
     deriving (Generic, Beamable)
   primaryKey = GenreId . _genreId
 
 data BookT f = BookT
-  { _bookId :: C f Int
+  { _bookId :: C f Int32
   , _title  :: C f Text
   , _desc   :: C f Text
-  , _year   :: C f Int
-  , _pages  :: C f Int
+  , _year   :: C f Int32
+  , _pages  :: C f Int32
   }
   deriving (Generic, Beamable)
 
@@ -50,7 +53,7 @@ type Book = BookT Identity
 type BookId = PrimaryKey BookT Identity
 
 instance Table BookT where
-  data PrimaryKey BookT f = BookId (C f Int)
+  data PrimaryKey BookT f = BookId (C f Int32)
     deriving (Generic, Beamable)
   primaryKey = BookId . _bookId
 
@@ -90,3 +93,13 @@ data LibraryDb f = LibraryDb
   , _genres      :: f (TableEntity GenreT)
   }
   deriving (Generic, Database Postgres)
+
+libraryDb :: DatabaseSettings Postgres LibraryDb
+libraryDb = defaultDbSettings
+
+deriving instance Show Book
+deriving instance Show Author
+deriving instance Show Genre
+deriving instance Show BookId
+deriving instance Show AuthorId
+deriving instance Show GenreId

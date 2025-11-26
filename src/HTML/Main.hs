@@ -3,6 +3,8 @@ module HTML.Main where
 import qualified Data.Text as T
 import           Lucid
 
+import           Storage.RawTypes
+
 bookPage :: Html ()
 bookPage = doctypehtml_ $ do
   head_ $ do
@@ -136,3 +138,16 @@ siteFooter =
         a_ [class_ "link-light text-decoration-underline", href_ "https://haskell.org"] "Haskell"
         " и библиотеки "
         code_ "lucid"
+
+
+dbTest :: [FullBook] -> Html ()
+dbTest books = doctypehtml_ $ do
+  head_ $ do
+    meta_ [charset_ "UTF-8"]
+    meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
+    title_ "test"
+  
+  body_ $ do
+    pre_ $ mapM_ (\fb -> toHtml (fullBookLine fb <> "\n")) books
+  where
+    fullBookLine fb = T.pack $ show fb

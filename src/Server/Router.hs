@@ -10,6 +10,7 @@ import           HTML.Error
 import           HTML.Main
 import           Server.Core
 import           Server.Utils
+import           Storage.Queries
 
 staticSettings :: StaticSettings
 staticSettings = defaultFileServerSettings "public"
@@ -27,5 +28,8 @@ getRouter req res =
   case rawPathInfo req of
     "/" ->
       liftIO $ res $ pageResponse status200 bookPage
+    "/test" -> do
+      fb <- runQuery selectFullBooks
+      liftIO $ res $ pageResponse status200 $ dbTest fb
     _   ->
       liftIO $ res $ pageResponse status404 (errorPage "Page not found - nothing to see there")

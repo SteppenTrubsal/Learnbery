@@ -23,7 +23,7 @@ executable Learnbery
     other-modules:
                       Config, Config.Postgre, Config.Common, Config.Pool, Config.Storage,
                       Server, Server.Core, Server.Router, Server.Utils,
-                      Storage.Queries, Storage.Service, Storage.Types,
+                      Storage.Queries, Storage.RawTypes, Storage.Types, Storage.Service,
                       HTML.Main, HTML.Error
     default-extensions:
                         TemplateHaskell,
