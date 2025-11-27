@@ -23,7 +23,7 @@ executable Learnbery
     other-modules:
                       Config, Config.Postgre, Config.Common, Config.Pool, Config.Storage,
                       Server, Server.Core, Server.Router, Server.Utils,
-                      Storage.Queries, Storage.RawTypes, Storage.Types, Storage.Service,
+                      Storage.Queries, Storage.Schema, Storage.Types, Storage.Service,
                       HTML.Main, HTML.Error
     default-extensions:
                         TemplateHaskell,
@@ -55,3 +55,22 @@ executable Learnbery
                         -- warp-tls, 
                         yaml
     hs-source-dirs:   src
+
+executable Migrator
+  main-is:              Storage/Migrator.hs
+  hs-source-dirs:       src
+  default-extensions:
+                        TemplateHaskell
+  other-modules:
+                        Config, Config.Common, Config.Pool, Config.Postgre, Config.Storage,
+                        Storage.Schema
+  build-depends:    
+                        aeson,
+                        base,
+                        beam-core,
+                        beam-migrate,
+                        beam-postgres,
+                        lens,
+                        text,
+                        yaml
+  default-language:    Haskell2010

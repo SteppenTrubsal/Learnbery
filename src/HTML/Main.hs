@@ -3,7 +3,7 @@ module HTML.Main where
 import qualified Data.Text as T
 import           Lucid
 
-import           Storage.RawTypes
+import           Storage.Types
 
 bookPage :: Html ()
 bookPage = doctypehtml_ $ do

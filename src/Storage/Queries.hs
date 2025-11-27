@@ -4,8 +4,8 @@ import           Data.Map
 import           Database.Beam
 import           Database.Beam.Postgres
 
-import           Storage.RawTypes
 import           Storage.Types
+import           Storage.Schema
 
 selectBooks :: Pg [Book]
 selectBooks =
