@@ -6,10 +6,11 @@ import           Data.Maybe (fromMaybe)
 import           Database.Beam.Postgres
 
 data PostgreConf = PostgreConf
-  { _host   :: Maybe String
-  , _port   :: Maybe Int
-  , _user   :: Maybe String
-  , _passwd :: Maybe String
+  { _host     :: Maybe String
+  , _port     :: Maybe Int
+  , _user     :: Maybe String
+  , _passwd   :: Maybe String
+  , _database :: Maybe String
   }
 makeLenses ''PostgreConf
 $(deriveJSON defaultOptions {fieldLabelModifier = drop 1} ''PostgreConf)
@@ -21,4 +22,5 @@ defPostgreConf pc =
     , connectPort = maybe (connectPort defaultConnectInfo) fromIntegral (pc ^. port)
     , connectUser = fromMaybe (connectUser defaultConnectInfo) $ pc ^. user
     , connectPassword = fromMaybe (connectPassword defaultConnectInfo) $ pc ^. passwd
+    , connectDatabase = fromMaybe (connectDatabase defaultConnectInfo) $ pc ^. database
     }

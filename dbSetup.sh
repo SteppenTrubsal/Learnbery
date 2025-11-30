@@ -1,23 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-### ========= НАСТРОЙКИ =========
-
-# Имя системного пользователя PostgreSQL (обычно postgres)
 PG_SYSTEM_USER="postgres"
-
-# Каталог для кластера
 PGDATA="/var/lib/postgres/data"
-
-# Локаль и кодировка (под себя подправь при желании)
 PG_LOCALE="en_US.UTF-8"
 PG_ENCODING="UTF8"
 
-# Пользователь БД, которого хотим создать
-DB_USER="library_user"
-DB_PASSWORD="super_secret_password"
+DB_USER="testUser"
+DB_PASSWORD="12345678"
+DB_NAME="learnbery"
 
-### ======== КОНЕЦ НАСТРОЕК ========
+SCHEMA_FILE="./init.sql"
+
+echo "[*] Проверяем наличие файла схемы: ${SCHEMA_FILE}"
+if [ ! -f "$SCHEMA_FILE" ]; then
+  echo "[!] Файл схемы '${SCHEMA_FILE}' не найден. Прерываемся."
+  exit 1
+fi
 
 echo "[*] Инициализация кластера в ${PGDATA}"
 
@@ -26,11 +25,10 @@ if [ -d "$PGDATA" ] && [ "$(ls -A "$PGDATA" 2>/dev/null | wc -l)" -ne 0 ]; then
   exit 1
 fi
 
-# Создаём каталог, если его нет
 mkdir -p "$PGDATA"
 chown "$PG_SYSTEM_USER":"$PG_SYSTEM_USER" "$PGDATA"
 
-# initdb
+echo "[*] Запускаем initdb"
 sudo -u "$PG_SYSTEM_USER" initdb \
   --locale="$PG_LOCALE" \
   -E "$PG_ENCODING" \
@@ -45,7 +43,6 @@ sudo -u "$PG_SYSTEM_USER" pg_ctl -D "$PGDATA" \
   -l "$LOGFILE" \
   start
 
-# Ждём, пока сервер поднимется
 echo "[*] Ждём, пока сервер будет готов..."
 for i in {1..30}; do
   if sudo -u "$PG_SYSTEM_USER" pg_isready -q -d "postgres" -h /tmp; then
@@ -60,12 +57,10 @@ if ! sudo -u "$PG_SYSTEM_USER" pg_isready -q -d "postgres" -h /tmp; then
   exit 1
 fi
 
-echo "[*] Создаём пользователя БД '${DB_USER}'"
+echo "[*] Создаём пользователя БД '${DB_USER}' (если нет)"
 
-# Важно: пароль не должен содержать одиночную кавычку, иначе надо экранировать сложнее
 sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d postgres <<EOF
-DO
-\$
+DO \$\$
 BEGIN
   IF NOT EXISTS (
     SELECT FROM pg_catalog.pg_roles WHERE rolname = '$DB_USER'
@@ -73,14 +68,40 @@ BEGIN
     CREATE ROLE "$DB_USER" WITH LOGIN PASSWORD '$DB_PASSWORD';
   END IF;
 END
-\$
-;
+\$\$;
 EOF
+
+echo "[*] Создаём базу данных '${DB_NAME}' (если нет)"
+
+sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d postgres <<EOF
+DO \$\$
+BEGIN
+  IF NOT EXISTS (
+    SELECT FROM pg_database WHERE datname = '$DB_NAME'
+  ) THEN
+    CREATE DATABASE "$DB_NAME" OWNER "$DB_USER";
+  END IF;
+END
+\$\$;
+EOF
+
+echo "[*] Настраиваем права на схему public в базе '${DB_NAME}'"
+
+sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d "$DB_NAME" <<EOF
+ALTER SCHEMA public OWNER TO "$DB_USER";
+GRANT ALL ON SCHEMA public TO "$DB_USER";
+EOF
+
+echo "[*] Накатываем схему из '${SCHEMA_FILE}' в базу '${DB_NAME}'"
+
+sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d "$DB_NAME" -f "$SCHEMA_FILE"
 
 echo "[*] Останавливаем временный сервер"
 
 sudo -u "$PG_SYSTEM_USER" pg_ctl -D "$PGDATA" stop
 
 echo "[✓] Готово."
-echo "    Кластер: $PGDATA"
-echo "    Пользователь БД: $DB_USER"
+echo "    Кластер:   $PGDATA"
+echo "    Пользователь: $DB_USER"
+echo "    База данных:  $DB_NAME"
+echo "    Схема:        $SCHEMA_FILE применена"
