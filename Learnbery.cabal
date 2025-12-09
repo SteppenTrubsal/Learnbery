@@ -55,7 +55,7 @@ library shared
                     text,
                     -- time,
                     wai,
-                    wai-app-static, 
+                    wai-middleware-static, 
                     -- wai-extra, 
                     -- wai-websockets, 
                     warp,

@@ -1,5 +1,7 @@
 common:
-  port: 8443
+  port:    8443
+  siteDir: public
+  resDir:  books
 
 pool:
   keepAlive:    30
