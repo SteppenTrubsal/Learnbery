@@ -17,31 +17,31 @@ CREATE TABLE IF NOT EXISTS books (
 );
 
 CREATE TABLE IF NOT EXISTS book_authors (
-    ba_book_id__id   INTEGER NOT NULL,
-    ba_author_id__id INTEGER NOT NULL,
+    book_id__id   INTEGER NOT NULL,
+    author_id__id INTEGER NOT NULL,
 
-    PRIMARY KEY (ba_book_id__id, ba_author_id__id),
+    PRIMARY KEY (book_id__id, author_id__id),
 
-    FOREIGN KEY (ba_book_id__id)
+    FOREIGN KEY (book_id__id)
         REFERENCES books(id)
         ON DELETE CASCADE,
 
-    FOREIGN KEY (ba_author_id__id)
+    FOREIGN KEY (author_id__id)
         REFERENCES authors(id)
         ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS book_genres (
-    bg_book_id__id  INTEGER NOT NULL,
-    bg_genre_id__id INTEGER NOT NULL,
+    book_id__id  INTEGER NOT NULL,
+    genre_id__id INTEGER NOT NULL,
 
-    PRIMARY KEY (bg_book_id__id, bg_genre_id__id),
+    PRIMARY KEY (book_id__id, genre_id__id),
 
-    FOREIGN KEY (bg_book_id__id)
+    FOREIGN KEY (book_id__id)
         REFERENCES books(id)
         ON DELETE CASCADE,
 
-    FOREIGN KEY (bg_genre_id__id)
+    FOREIGN KEY (genre_id__id)
         REFERENCES genres(id)
         ON DELETE CASCADE
 );

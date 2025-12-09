@@ -8,6 +8,6 @@ pool:
 postgre:
   host:
   port:
-  user:     testUser
-  passwd:   "12345678"
+  user:     postgres
+  passwd:   
   database: learnbery

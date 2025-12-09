@@ -1,8 +1,11 @@
 module Loader.Queries where
 
+import           Control.Lens
+
 import           Data.Text              (Text)
 import           Database.Beam
 import           Database.Beam.Postgres
+import           Database.Beam.Schema.Tables
 
 import           Loader.Types
 import           Storage.Schema
@@ -76,28 +79,41 @@ insertBookWithRelations bi = do
         ]
 
   mBook <- runSelectReturningOne $ select $
-             filter_ (\b ->
-               (_title b ==. val_ (biTitle bi)) &&.
-               (_desc  b ==. val_ (biDesc bi))  &&.
-               (_year  b ==. val_ (biYear bi))  &&.
-               (_pages b ==. val_ (biPages bi))
-             ) $
+             limit_ 1 $
+             orderBy_ (desc_ . _bookId) $
              all_ (_books libraryDb)
 
-  book <- maybe (fail "insertBookWithRelations: can't find inserted book")
+  book <- maybe (fail "insertBookWithRelations: can't find last inserted book")
                 pure
                 mBook
 
   let bookIdPk = BookId (_bookId book)
 
   runInsert $
-    insert (_bookAuthors libraryDb) $
+    insert (_book_authors libraryDb) $
       insertValues
         [ BookAuthorT bookIdPk authorId | authorId <- authorIds ]
 
   runInsert $
-    insert (_bookGenres libraryDb) $
+    insert (_book_genres libraryDb) $
       insertValues
         [ BookGenreT bookIdPk genreId | genreId <- genreIds ]
 
   pure ()
+
+testInsertBA :: Pg ()
+testInsertBA = do
+  let bId = BookId 1   -- или просто BookId 1, если Identity
+      aId = AuthorId 1 -- аналогично
+  runInsert $
+    insert (_book_authors libraryDb) $
+      insertValues [ BookAuthorT bId aId ]
+
+printTableNames :: Pg ()
+printTableNames = do
+  liftIO $ do
+    putStrLn $ "authors:     " ++ show (_authors     libraryDb ^. dbEntityDescriptor . dbEntityName)
+    putStrLn $ "books:       " ++ show (_books       libraryDb ^. dbEntityDescriptor . dbEntityName)
+    putStrLn $ "bookAuthors: " ++ show (_book_authors libraryDb ^. dbEntityDescriptor . dbEntityName)
+    putStrLn $ "bookGenres:  " ++ show (_book_genres  libraryDb ^. dbEntityDescriptor . dbEntityName)
+    putStrLn $ "genres:      " ++ show (_genres      libraryDb ^. dbEntityDescriptor . dbEntityName)

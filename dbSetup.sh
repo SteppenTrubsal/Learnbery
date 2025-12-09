@@ -73,17 +73,16 @@ EOF
 
 echo "[*] Создаём базу данных '${DB_NAME}' (если нет)"
 
-sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d postgres <<EOF
-DO \$\$
-BEGIN
-  IF NOT EXISTS (
-    SELECT FROM pg_database WHERE datname = '$DB_NAME'
-  ) THEN
-    CREATE DATABASE "$DB_NAME" OWNER "$DB_USER";
-  END IF;
-END
-\$\$;
-EOF
+DB_EXISTS=$(sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d postgres -tAc \
+  "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME'" || true)
+
+if [ -z "$DB_EXISTS" ]; then
+  echo "    База не найдена, создаю..."
+  sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d postgres -c \
+    "CREATE DATABASE \"$DB_NAME\" OWNER \"$DB_USER\";"
+else
+  echo "    База уже существует, пропускаю создание."
+fi
 
 echo "[*] Настраиваем права на схему public в базе '${DB_NAME}'"
 
@@ -92,9 +91,13 @@ ALTER SCHEMA public OWNER TO "$DB_USER";
 GRANT ALL ON SCHEMA public TO "$DB_USER";
 EOF
 
-echo "[*] Накатываем схему из '${SCHEMA_FILE}' в базу '${DB_NAME}'"
+echo "[*] Накатываем схему из '${SCHEMA_FILE}' в базу '${DB_NAME}' от имени ${DB_USER}"
 
-sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d "$DB_NAME" -f "$SCHEMA_FILE"
+sudo -u "$PG_SYSTEM_USER" psql -h /tmp -d "$DB_NAME" <<EOF
+SET ROLE "$DB_USER";
+\i '$SCHEMA_FILE';
+RESET ROLE;
+EOF
 
 echo "[*] Останавливаем временный сервер"
 

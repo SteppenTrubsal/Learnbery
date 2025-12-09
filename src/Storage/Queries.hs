@@ -17,7 +17,7 @@ selectBookAuthors :: Pg [(BookId, Author)]
 selectBookAuthors =
   runSelectReturningList $
     select $ do
-      ba <- all_ (_bookAuthors libraryDb)
+      ba <- all_ (_book_authors libraryDb)
       a  <- all_ (_authors     libraryDb)
 
       guard_ (_baAuthorId ba ==. pk a)
@@ -28,7 +28,7 @@ selectBookGenres :: Pg [(BookId, Genre)]
 selectBookGenres =
   runSelectReturningList $
     select $ do
-      bg <- all_ (_bookGenres libraryDb)
+      bg <- all_ (_book_genres libraryDb)
       g  <- all_ (_genres     libraryDb)
 
       guard_ (_bgGenreId bg ==. pk g)

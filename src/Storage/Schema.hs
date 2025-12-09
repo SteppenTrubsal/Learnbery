@@ -88,8 +88,8 @@ instance Table BookGenreT where
 data LibraryDb f = LibraryDb
   { _authors     :: f (TableEntity AuthorT)
   , _books       :: f (TableEntity BookT)
-  , _bookAuthors :: f (TableEntity BookAuthorT)
-  , _bookGenres  :: f (TableEntity BookGenreT)
+  , _book_authors :: f (TableEntity BookAuthorT)
+  , _book_genres  :: f (TableEntity BookGenreT)
   , _genres      :: f (TableEntity GenreT)
   }
   deriving (Generic, Database Postgres)
