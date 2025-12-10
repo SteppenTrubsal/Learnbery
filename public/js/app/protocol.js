@@ -11,11 +11,19 @@ class ProtocolHub {
     if (this.initialized) return;
     this.initialized = true;
 
-    bus.on(BUS_EVENTS.UI.BOOK.CLICK, ({ id }) => {
-      if (!id) return;
+    // bus.on(BUS_EVENTS.UI.BOOK.CLICK, ({ id }) => {
+    //   if (!id) return;
+    //   ajaxClient.request({
+    //     path: `/api/book/${encodeURIComponent(id)}`,
+    //     method: 'GET',
+    //     type: 'book:details',
+    //   });
+    // });
 
+    bus.on(BUS_EVENTS.UI.BOOK.HOVER, ({ id }) => {
+      if (!id) return;
       ajaxClient.request({
-        path: `/books/${encodeURIComponent(id)}`,
+        path: `/book/${encodeURIComponent(id)}`,
         method: 'GET',
         type: 'book:details',
       });

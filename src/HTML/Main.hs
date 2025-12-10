@@ -16,7 +16,7 @@ bookPage = doctypehtml_ $ do
     link_ [rel_ "stylesheet", href_ "css/main.css"]
     script_ [type_ "module", src_ "js/app/init.js"] T.empty
 
-  body_ [id_ "top", class_ "d-flex flex-column min-vh-100 bg-dark text-light"] $ do
+  body_ [id_ "top", class_ "d-flex flex-column min-vh-100", style_ "background-color: #fdfdf7;"] $ do
     siteHeader
     mainContent
     siteFooter
@@ -43,55 +43,7 @@ mainContent =
 
     section_ [id_ "books", class_ "mb-5"] $ do
       h2_ [class_ "h2 text-center mb-4"] "Новинки литературы"
-
-      div_ [class_ "row g-4"] $ do
-
-        article_ [class_ "col-md-6"] $
-
-          div_ [class_ "card h-100 bg-dark border-secondary", onclick_ "onBookClick('test', this)"] $ do
-            div_ [class_ "row g-0"] $ do
-              div_ [class_ "col-md-4"] $
-                img_ [ class_ "img-fluid rounded-start"
-                     , src_ "https://placehold.co/200x300/3a5bbc/white?text=Философия+Java"
-                     , alt_ "Обложка книги 'Философия Java'"
-                     ]
-              div_ [class_ "col-md-8"] $
-                div_ [class_ "card-body"] $ do
-                  h3_ [class_ "card-title h5"] "Философия Java"
-                  p_ [class_ "card-text mb-1"] $ do
-                    "Автор: "
-                    em_ "Брюс Эккель"
-                  p_ [class_ "card-text mb-1"] $ do
-                    "Издание: "
-                    strong_ "4-е издание (2023)"
-                  p_ [class_ "card-text"] "Фундаментальный труд по программированию на Java для профессионалов"
-                  a_ [ class_ "btn btn-outline-primary btn-sm mt-2"
-                     , href_ "#buy"
-                     , role_ "button"
-                     ] "Купить за 1499 ₽"
-
-        article_ [class_ "col-md-6"] $
-          div_ [class_ "card h-100 bg-dark border-secondary"] $ do
-            div_ [class_ "row g-0"] $ do
-              div_ [class_ "col-md-4"] $
-                img_ [ class_ "img-fluid rounded-start"
-                     , src_ "https://placehold.co/200x300/2c6fbb/white?text=Алгоритмы"
-                     , alt_ "Обложка книги 'Грокаем алгоритмы'"
-                     ]
-              div_ [class_ "col-md-8"] $
-                div_ [class_ "card-body"] $ do
-                  h3_ [class_ "card-title h5"] "Грокаем алгоритмы"
-                  p_ [class_ "card-text mb-1"] $ do
-                    "Автор: "
-                    em_ "Адитья Бхаргава"
-                  p_ [class_ "card-text mb-1"] $ do
-                    "Рейтинг: "
-                    strong_ "★★★★★ (4.9/5)"
-                  p_ [class_ "card-text"] "Иллюстрированное руководство для начинающих"
-                  a_ [ class_ "btn btn-outline-primary btn-sm mt-2"
-                     , href_ "#buy"
-                     , role_ "button"
-                     ] "Купить за 899 ₽"
+      div_ [id_ "book-list", class_ "row g-4"] $ return ()
 
     section_ [id_ "about", class_ "mb-5"] $ do
       h2_ [class_ "h2 text-center mb-4"] "О нашей библиотеке"

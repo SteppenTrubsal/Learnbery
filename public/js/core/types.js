@@ -8,6 +8,7 @@ export const BUS_EVENTS = {
   UI: {
     BOOK: {
       CLICK: 'ui:book:click',
+      HOVER: 'ui:book:hover',
     },
   },
 

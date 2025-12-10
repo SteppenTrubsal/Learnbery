@@ -17,6 +17,12 @@ class BookDetailsPopup {
       }
     });
 
+    bus.on(BUS_EVENTS.UI.BOOK.HOVER, ({ el }) => {
+      if (el instanceof HTMLElement) {
+        this.anchorEl = el;
+      }
+    });
+
     // слушаем ответ от сервера с деталями книги
     bus.on(msgEvent('book:details'), ({ payload }) => {
       this.show(payload);
