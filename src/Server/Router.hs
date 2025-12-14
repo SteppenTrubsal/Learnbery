@@ -1,11 +1,15 @@
 module Server.Router where
 
+import           Control.Monad
 import           Control.Monad.IO.Class
 
 import           Data.Aeson
 import           Data.ByteString        (ByteString)
 import qualified Data.ByteString.Char8  as BSC
 import qualified Data.Text              as T
+import qualified Data.Text.Encoding     as TE
+import qualified Data.Text.Encoding.Error as TEE
+import           Data.Int
 
 import           Network.Wai
 import           Network.HTTP.Types
@@ -18,72 +22,189 @@ import           Server.Core
 import           Server.Utils
 import           Storage.Queries
 import           Storage.Schema
+import           Storage.Types
 
 router :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
 router req res =
   case requestMethod req of
-    "GET"  -> getRouter req res
-    _      -> liftIO $ res $ pageResponse status400 (errorPage "Undefined http method - what did you do to get this)) ?")
+    "GET" -> getRouter req res
+    _     -> liftIO $ res $ pageResponse status400 (errorPage "Undefined http method - what did you do to get this)) ?")
 
 getRouter :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
 getRouter req res = do
-  case rawPathInfo req of
-    "/test" -> do
+  -- ВАЖНО: pathInfo уже декодирован в Text (UTF-8)
+  case pathInfo req of
+    ["api", "books"] -> booksEndpoint req res
+    ["api", "books", bidTxt] -> bookDetailsEndpointText bidTxt res
+    ["api", "catalog", "filters"] -> catalogFiltersEndpoint res
+
+    [] -> liftIO $ res $ pageResponse status200 bookPage
+    ["test"] -> do
       fb <- runQuery selectFullBooks
       liftIO $ res $ pageResponse status200 $ dbTest fb
-    "/api/books" -> pagedEndpoint req res
-    p | Just bs <- BSC.stripPrefix (BSC.pack "/api/book/") p -> do
-      -- liftIO $ putStrLn "testapi"
-      bookInfoEndpoint bs res
-    "/" ->
-      liftIO $ res $ pageResponse status200 bookPage
-    _   ->
-      liftIO $ res $ pageResponse status404 (errorPage "Page not found - nothing to see there")
 
-pagedEndpoint :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
-pagedEndpoint req res = do
-  let
-    params = queryString req
-    offset = case lookup "offset" params of
-      Just (Just bs) -> maybe 0 fst (BSC.readInt bs)
-      _              -> 0
-    limit  = case lookup "limit" params of
-                    Just (Just bs) -> maybe 20 fst (BSC.readInt bs)
-                    _              -> 20
+    _ -> liftIO $ res $ pageResponse status404 (errorPage "Page not found - nothing to see there")
 
-  books <- runQuery $ selectBooksPaged offset limit
+-- helpers
+qParam :: Request -> BSC.ByteString -> Maybe BSC.ByteString
+qParam req k = join (lookup k (queryString req))
 
-  let resultJSON = encode $ map (\b -> 
-                         object [ "id"    .= _bookId b
-                                , "title" .= _title b
-                                , "cover" .= ( "https://placehold.co/200x300/cccccc/ffffff?text="
-                                               <> T.replace " " "+" (_title b) )
-                                ]) books
+qInt :: Request -> BSC.ByteString -> Maybe Int
+qInt req k = qParam req k >>= (fmap fst . BSC.readInt)
 
-  liftIO $ res $ bsResponse resultJSON
+qInt32 :: Request -> BSC.ByteString -> Maybe Int32
+qInt32 req k = fromIntegral <$> qInt req k
 
-bookInfoEndpoint :: ByteString -> (Response -> IO ResponseReceived) -> App ResponseReceived
-bookInfoEndpoint bs res = do
-  case readMaybe (BSC.unpack bs) :: Maybe Int of
-    Nothing  -> 
-      liftIO $ res $ bsResponse "{\"error\":\"Invalid book ID\"}"
-    Just bid -> do
-      mBook <- runQuery $ selectBookById (fromIntegral bid)
-      case mBook of
-        Nothing ->
-          liftIO $ res $ bsResponse "{\"error\":\"Book not found\"}"
-        Just (BookT _ title desc year pages) -> do
-          authors <- runQuery $ selectAuthorsByBookId (fromIntegral bid)
-          genres  <- runQuery $ selectGenresByBookId (fromIntegral bid)
+qText :: Request -> BSC.ByteString -> Maybe T.Text
+qText req k =
+  case join (lookup k (queryString req)) of
+    Nothing -> Nothing
+    Just bs -> Just (TE.decodeUtf8With TEE.lenientDecode bs)
 
-          let detailJSON = object 
-                    [ "id"      .= bid
-                    , "title"   .= title
-                    , "desc"    .= desc
-                    , "year"    .= year
-                    , "pages"   .= pages
-                    , "authors" .= map _authorName authors
-                    , "genres"  .= map _genreName genres
-                    ]
-          
-          liftIO $ res $ bsResponse $ encode detailJSON
+jsonResp :: Status -> Response
+jsonResp st = responseLBS st [("Content-Type","application/json; charset=utf-8")] ""
+
+jsonRespBody :: Status -> T.Text -> Response
+jsonRespBody st body = responseLBS st [("Content-Type","application/json; charset=utf-8")] (encode (object ["error" .= body]))
+
+respondJson :: ToJSON a => (Response -> IO ResponseReceived) -> Status -> a -> IO ResponseReceived
+respondJson res st a =
+  res $ responseLBS st [("Content-Type","application/json; charset=utf-8")] (encode a)
+
+-- /api/books?offset&limit&q&author&genre&year_from&year_to
+booksEndpoint :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
+booksEndpoint req res = do
+  let off   = maybe 0 id (qInt req "offset")
+      lim   = maybe 20 id (qInt req "limit")
+      mq      = qText req "q"
+      ma      = qInt32 req "author"
+      mg      = qInt32 req "genre"
+      mAuthorQ = qText req "author_q"
+      mGenreQ  = qText req "genre_q"
+      yFrom   = qInt32 req "year_from"
+      yTo     = qInt32 req "year_to"
+
+  books <- runQuery $ selectBooksPagedFiltered off lim mq ma mg mAuthorQ mGenreQ yFrom yTo
+
+
+  -- cover можешь пока не отдавать (ты сказал обложки потом), но твой loader ждёт cover.
+  let payload =
+        map (\(BookT bid title _ _ _) ->
+          object
+            [ "id"    .= bid
+            , "title" .= title
+            , "cover" .= ("https://placehold.co/200x300/cccccc/ffffff?text=" <> title)
+            ]
+        ) books
+
+  liftIO $ respondJson res status200 payload
+
+-- /api/books/:id
+bookDetailsEndpointText :: T.Text -> (Response -> IO ResponseReceived) -> App ResponseReceived
+bookDetailsEndpointText bidTxt res =
+  case readMaybe (T.unpack bidTxt) :: Maybe Int of
+    Nothing -> liftIO $ respondJson res status400 (object ["error" .= ("Invalid id" :: T.Text)])
+    Just bidInt -> do
+      let bid = fromIntegral bidInt :: Int32
+      mfb <- runQuery $ selectFullBookById bid
+      case mfb of
+        Nothing -> liftIO $ respondJson res status404 (object ["error" .= ("Not found" :: T.Text)])
+        Just (FullBook (BookT _ title desc year pages) authors genres) -> do
+          let authorNames = map _authorName authors
+              genreNames  = map _genreName  genres
+          liftIO $ respondJson res status200 $
+            object
+              [ "id"      .= bidInt
+              , "title"   .= title
+              , "desc"    .= desc
+              , "year"    .= year
+              , "pages"   .= pages
+              , "author"  .= (if null authorNames then ("Неизвестный автор" :: T.Text) else T.intercalate ", " authorNames)
+              , "authors" .= authorNames
+              , "genres"  .= genreNames
+              ]
+
+-- /api/catalog/filters
+catalogFiltersEndpoint :: (Response -> IO ResponseReceived) -> App ResponseReceived
+catalogFiltersEndpoint res = do
+  authors <- runQuery selectAuthors
+  genres  <- runQuery selectGenres
+  years   <- runQuery selectBookYears
+
+  let yMin = if null years then Nothing else Just (minimum years)
+      yMax = if null years then Nothing else Just (maximum years)
+
+  liftIO $ respondJson res status200 $
+    object
+      [ "authors" .= map (\(AuthorT aid nm) -> object ["id" .= aid, "name" .= nm]) authors
+      , "genres"  .= map (\(GenreT  gid nm) -> object ["id" .= gid, "name" .= nm]) genres
+      , "years"   .= object ["min" .= yMin, "max" .= yMax]
+      ]
+
+
+-- getRouter :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
+-- getRouter req res = do
+--   case rawPathInfo req of
+--     "/test" -> do
+--       fb <- runQuery selectFullBooks
+--       liftIO $ res $ pageResponse status200 $ dbTest fb
+--     "/api/books" -> pagedEndpoint req res
+--     p | Just bs <- BSC.stripPrefix (BSC.pack "/api/book/") p -> do
+--       -- liftIO $ putStrLn "testapi"
+--       bookInfoEndpoint bs res
+--     "/" ->
+--       liftIO $ res $ pageResponse status200 bookPage
+--     _   ->
+--       liftIO $ res $ pageResponse status404 (errorPage "Page not found - nothing to see there")
+
+-- pagedEndpoint :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
+-- pagedEndpoint req res = do
+--   let
+--     params = queryString req
+--     offset = case lookup "offset" params of
+--       Just (Just bs) -> maybe 0 fst (BSC.readInt bs)
+--       _              -> 0
+--     limit  = case lookup "limit" params of
+--                     Just (Just bs) -> maybe 20 fst (BSC.readInt bs)
+--                     _              -> 20
+
+--   books <- runQuery $ selectBooksPaged offset limit
+
+--   let resultJSON = encode $ map (\b -> 
+--                          object [ "id"    .= _bookId b
+--                                 , "title" .= _title b
+--                                 , "cover" .= ( "https://placehold.co/200x300/cccccc/ffffff?text="
+--                                                <> T.replace " " "+" (_title b) )
+--                                 ]) books
+
+--   liftIO $ res $ bsResponse resultJSON
+
+-- bookInfoEndpoint :: BSC.ByteString -> (Response -> IO ResponseReceived) -> App ResponseReceived
+-- bookInfoEndpoint bs res =
+--   case BSC.readInt bs of
+--     Nothing -> liftIO $ res $ responseJson status400 (object ["error" .= ("Invalid book id" :: T.Text)])
+--     Just (bidInt, _) -> do
+--       let bid = fromIntegral bidInt
+--       mfb <- runQuery (selectFullBookById bid)
+
+--       case mfb of
+--         Nothing -> liftIO $ res $ responseJson status404 (object ["error" .= ("Book not found" :: T.Text)])
+--         Just (FullBook (BookT _ title desc year pages) authors genres) -> do
+--           let authorNames = map _authorName authors
+--               genreNames  = map _genreName  genres
+--               authorText  = if null authorNames then ("Неизвестный автор" :: T.Text) else T.intercalate ", " authorNames
+
+--           liftIO $ res $ responseJson status200 $
+--             object
+--               [ "id"      .= bidInt
+--               , "title"   .= title
+--               , "desc"    .= desc
+--               , "year"    .= year
+--               , "pages"   .= pages
+--               , "author"  .= authorText
+--               , "authors" .= authorNames
+--               , "genres"  .= genreNames
+--               ]
+--   where
+--     responseJson st v =
+--       responseLBS st [("Content-Type","application/json; charset=utf-8")] $ encode v

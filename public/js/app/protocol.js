@@ -23,7 +23,7 @@ class ProtocolHub {
     bus.on(BUS_EVENTS.UI.BOOK.HOVER, ({ id }) => {
       if (!id) return;
       ajaxClient.request({
-        path: `/book/${encodeURIComponent(id)}`,
+        path: `/books/${encodeURIComponent(id)}`,
         method: 'GET',
         type: 'book:details',
       });

@@ -79,22 +79,37 @@ class BookDetailsPopup {
     if (!content) return;
 
     const title = book.title || book.name || 'Без названия';
-    const author = book.author || 'Неизвестный автор';
+
+    const authorsArr = Array.isArray(book.authors) ? book.authors : [];
+    const author =
+      book.author ||
+      (authorsArr.length ? authorsArr.join(', ') : 'Неизвестный автор');
+
+    const genresArr = Array.isArray(book.genres) ? book.genres : [];
+    const genresText = genresArr.length ? genresArr.join(', ') : '—';
+
     const year = book.year || '';
     const description = book.description || book.desc || 'Описание отсутствует';
 
     content.innerHTML = `
       <h3 style="margin: 0 0 0.5rem 0;">${escapeHtml(title)}</h3>
+
       <p style="margin: 0 0 0.25rem 0;">
         <strong>Автор:</strong> ${escapeHtml(author)}
       </p>
+
+      <p style="margin: 0 0 0.25rem 0;">
+        <strong>Жанры:</strong> ${escapeHtml(genresText)}
+      </p>
+
       ${
         year
           ? `<p style="margin: 0 0 0.25rem 0;">
                <strong>Год издания:</strong> ${escapeHtml(String(year))}
-             </p>`
+            </p>`
           : ''
       }
+
       <p style="margin: 0.5rem 0 0 0;">${escapeHtml(description)}</p>
     `;
 

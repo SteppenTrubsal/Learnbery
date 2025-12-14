@@ -1,9 +1,40 @@
-::selection {
-  background-color: rgba(13, 110, 253, 0.25);
-  color: #fff;
+:root {
+  --cream: #fdfdf7;
+  --header-peek: 14px; /* сколько видно, когда спрятан */
 }
 
-footer code {
-  padding: 0.1rem 0.25rem;
-  border-radius: 0.25rem;
+/* панели */
+.app-panel { display: none; }
+.app-panel.is-active { display: block; }
+
+/* выдвижной header */
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1030;
+
+  background: rgba(253, 253, 247, 0.92);
+  backdrop-filter: blur(8px);
+
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+
+  transform: translateY(calc(-100% + var(--header-peek)));
+  transition: transform 180ms ease;
+}
+
+.site-header:hover,
+.site-header:focus-within {
+  transform: translateY(0);
+}
+
+/* чтобы контент не был под fixed-header */
+body {
+  background: var(--cream);
+  padding-top: 84px; /* можно подправить визуально */
+}
+
+/* мелочи */
+::selection {
+  background-color: rgba(13, 110, 253, 0.18);
 }

@@ -10,6 +10,12 @@ export const BUS_EVENTS = {
       CLICK: 'ui:book:click',
       HOVER: 'ui:book:hover',
     },
+    NAV: {
+      GOTO: 'ui:nav:goto',
+    },
+    CATALOG: {
+      FILTER_CHANGED: 'ui:catalog:filter_changed',
+    },
   },
 
   BOOK: {

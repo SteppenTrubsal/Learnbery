@@ -2,14 +2,20 @@ import { bus } from '../core/bus.js';
 import { router } from '../core/router.js';
 import { protocolHub } from './protocol.js';
 import { bookDetailsPopup } from './popup.js';
-import { catalogLoader } from './catalogLoader.js';
+import { panelManager } from './panels.js';
 import { BUS_EVENTS } from '../core/types.js';
+
+import { catalogLoader } from './catalogLoader.js';
+import { catalogFilters } from './catalogFilters.js';
 
 function initApp() {
   router.init();
   protocolHub.init();
   bookDetailsPopup.init();
+  panelManager.init();
+
   catalogLoader.init();
+  catalogFilters.init();
 }
 
 window.initApp = initApp;
