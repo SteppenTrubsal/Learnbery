@@ -91,6 +91,16 @@ class BookDetailsPopup {
     const year = book.year || '';
     const description = book.description || book.desc || 'Описание отсутствует';
 
+    const downloadUrl = book.downloadUrl || null;
+
+    const downloadBtn = downloadUrl
+      ? `<div style="margin-top: 0.75rem;">
+          <a class="btn btn-sm btn-primary w-100" href="${escapeHtml(downloadUrl)}">
+            Скачать
+          </a>
+        </div>`
+      : '';
+
     content.innerHTML = `
       <h3 style="margin: 0 0 0.5rem 0;">${escapeHtml(title)}</h3>
 
@@ -111,6 +121,7 @@ class BookDetailsPopup {
       }
 
       <p style="margin: 0.5rem 0 0 0;">${escapeHtml(description)}</p>
+      ${downloadBtn}
     `;
 
     this.positionNearAnchor();

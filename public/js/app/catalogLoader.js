@@ -29,7 +29,7 @@ class CatalogLoader {
     });
 
     // первая загрузка (если фильтры не пушнутся сами)
-    this.loadMore();
+    // this.loadMore();
 
     window.addEventListener('scroll', () => {
       if (this.loading || this.allLoaded) return;

@@ -205,3 +205,11 @@ selectBooksPagedFiltered off lim mq mAuthor mGenre mAuthorQ mGenreQ mYFrom mYTo 
               pure bg
 
         pure b
+
+selectTitleById :: Int32 -> Pg (Maybe Text)
+selectTitleById bid = do
+  runSelectReturningOne $
+    select $ do
+      b <- all_ (_books libraryDb)
+      guard_ (_bookId b ==. val_ bid)
+      pure (_title b)
