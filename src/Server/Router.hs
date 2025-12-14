@@ -1,15 +1,11 @@
 module Server.Router where
 
-import           Control.Monad
 import           Control.Monad.IO.Class
 
 import           Data.Aeson
-import           Data.ByteString        (ByteString)
-import qualified Data.ByteString.Char8  as BSC
 import qualified Data.Text              as T
-import qualified Data.Text.Encoding     as TE
-import qualified Data.Text.Encoding.Error as TEE
 import           Data.Int
+import           Data.Maybe
 
 import           Network.Wai
 import           Network.HTTP.Types
@@ -32,7 +28,6 @@ router req res =
 
 getRouter :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
 getRouter req res = do
-  -- ВАЖНО: pathInfo уже декодирован в Text (UTF-8)
   case pathInfo req of
     ["api", "books"] -> booksEndpoint req res
     ["api", "books", bidTxt] -> bookDetailsEndpointText bidTxt res
@@ -45,37 +40,10 @@ getRouter req res = do
 
     _ -> liftIO $ res $ pageResponse status404 (errorPage "Page not found - nothing to see there")
 
--- helpers
-qParam :: Request -> BSC.ByteString -> Maybe BSC.ByteString
-qParam req k = join (lookup k (queryString req))
-
-qInt :: Request -> BSC.ByteString -> Maybe Int
-qInt req k = qParam req k >>= (fmap fst . BSC.readInt)
-
-qInt32 :: Request -> BSC.ByteString -> Maybe Int32
-qInt32 req k = fromIntegral <$> qInt req k
-
-qText :: Request -> BSC.ByteString -> Maybe T.Text
-qText req k =
-  case join (lookup k (queryString req)) of
-    Nothing -> Nothing
-    Just bs -> Just (TE.decodeUtf8With TEE.lenientDecode bs)
-
-jsonResp :: Status -> Response
-jsonResp st = responseLBS st [("Content-Type","application/json; charset=utf-8")] ""
-
-jsonRespBody :: Status -> T.Text -> Response
-jsonRespBody st body = responseLBS st [("Content-Type","application/json; charset=utf-8")] (encode (object ["error" .= body]))
-
-respondJson :: ToJSON a => (Response -> IO ResponseReceived) -> Status -> a -> IO ResponseReceived
-respondJson res st a =
-  res $ responseLBS st [("Content-Type","application/json; charset=utf-8")] (encode a)
-
--- /api/books?offset&limit&q&author&genre&year_from&year_to
 booksEndpoint :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
 booksEndpoint req res = do
-  let off   = maybe 0 id (qInt req "offset")
-      lim   = maybe 20 id (qInt req "limit")
+  let off   = fromMaybe 0 (qInt req "offset")
+      lim   = fromMaybe 20 (qInt req "limit")
       mq      = qText req "q"
       ma      = qInt32 req "author"
       mg      = qInt32 req "genre"
@@ -86,8 +54,6 @@ booksEndpoint req res = do
 
   books <- runQuery $ selectBooksPagedFiltered off lim mq ma mg mAuthorQ mGenreQ yFrom yTo
 
-
-  -- cover можешь пока не отдавать (ты сказал обложки потом), но твой loader ждёт cover.
   let payload =
         map (\(BookT bid title _ _ _) ->
           object
@@ -99,7 +65,6 @@ booksEndpoint req res = do
 
   liftIO $ respondJson res status200 payload
 
--- /api/books/:id
 bookDetailsEndpointText :: T.Text -> (Response -> IO ResponseReceived) -> App ResponseReceived
 bookDetailsEndpointText bidTxt res =
   case readMaybe (T.unpack bidTxt) :: Maybe Int of
@@ -124,7 +89,6 @@ bookDetailsEndpointText bidTxt res =
               , "genres"  .= genreNames
               ]
 
--- /api/catalog/filters
 catalogFiltersEndpoint :: (Response -> IO ResponseReceived) -> App ResponseReceived
 catalogFiltersEndpoint res = do
   authors <- runQuery selectAuthors
@@ -140,7 +104,6 @@ catalogFiltersEndpoint res = do
       , "genres"  .= map (\(GenreT  gid nm) -> object ["id" .= gid, "name" .= nm]) genres
       , "years"   .= object ["min" .= yMin, "max" .= yMax]
       ]
-
 
 -- getRouter :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
 -- getRouter req res = do
