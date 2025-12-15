@@ -4,9 +4,9 @@ Main goal - make website for educational purposes
 Needed:  
 - [x] Basic site  
 - [x] Prettify with fancy CSS  
-- [ ] Dynamics with JS  
+- [x] Dynamics with JS  
 - [ ] Fancy JS  
-- [ ] Adding postgre  
-- [ ] Search  
-- [ ] AJAX  
-- [ ] Some tricky _boring_ stuff with Chart.js  
+- [x] Adding postgre  
+- [x] Search  
+- [x] AJAX  
+- [x] Some tricky _boring_ stuff with Chart.js  

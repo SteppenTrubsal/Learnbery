@@ -16,6 +16,7 @@ bookPage = doctypehtml_ $ do
     link_ [rel_ "stylesheet", href_ "css/bootstrap.min.css"]
     link_ [rel_ "stylesheet", href_ "css/main.css"]
     script_ [type_ "module", src_ "js/app/init.js"] T.empty
+    script_ [ src_ "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js", defer_ ""] T.empty
 
   body_ [id_ "top", class_ "d-flex flex-column min-vh-100 text-dark", style_ "background-color:#fdfdf7;"] $ do
     siteHeader
@@ -28,6 +29,8 @@ siteHeader =
     nav_ [class_ "navbar container py-3"] $ do
       a_ [class_ "navbar-brand fw-semibold", href_ "#home", makeAttribute "data-panel" "home"] "📚 Learnbery"
       ul_ [class_ "navbar-nav ms-auto flex-row gap-3"] $ do
+        li_ [class_ "nav-item"] $
+          a_ [class_ "nav-link", href_ "#fortune", makeAttribute "data-panel" "fortune"] "Фортуна"
         li_ [class_ "nav-item"] $
           a_ [class_ "nav-link", href_ "#catalog", makeAttribute "data-panel" "catalog"] "Каталог"
         li_ [class_ "nav-item"] $
@@ -42,6 +45,17 @@ mainContent =
     section_ [id_ "home", class_ "app-panel is-active"] $ do
       h1_ [class_ "display-6 mb-3"] "Главная"
       p_ [class_ "lead"] "Здесь будет главная страница (пока placeholder)."
+
+    section_ [id_ "fortune", class_ "app-panel"] $ do
+      h2_ [class_ "h2 mb-4"] "Фортуна"
+
+      div_ [class_ "d-flex flex-column align-items-center justify-content-center", style_ "min-height: 65vh;"] $ do
+        div_ [style_ "width: min(520px, 92vw);"] $ do
+          canvas_ [id_ "fortuneChart"] mempty
+
+        div_ [class_ "mt-4 d-flex flex-column align-items-center gap-2"] $ do
+          button_ [class_ "btn btn-primary px-4", id_ "fortuneSpin", type_ "button"] "Мне повезёт!"
+          div_ [id_ "fortuneResult", class_ "text-muted"] mempty
 
     section_ [id_ "catalog", class_ "app-panel mb-5"] $ do
       h2_ [class_ "h2 text-center mb-4"] "Каталог"

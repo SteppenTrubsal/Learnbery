@@ -8,6 +8,8 @@ import { BUS_EVENTS } from '../core/types.js';
 import { catalogLoader } from './catalogLoader.js';
 import { catalogFilters } from './catalogFilters.js';
 
+import { fortuneWheel } from './fortune.js';
+
 function initApp() {
   router.init();
   protocolHub.init();
@@ -16,6 +18,8 @@ function initApp() {
 
   catalogLoader.init();
   catalogFilters.init();
+
+  fortuneWheel.init();
 }
 
 window.initApp = initApp;

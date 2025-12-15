@@ -44,6 +44,8 @@ getRouter req res = do
 
     ["r", "book", bid, "download"] -> downloadEndpoint bid res
 
+    ["fortune"]  -> fortuneEndpoint res
+
     [] -> liftIO $ res $ pageResponse status200 bookPage
     ["test"] -> do
       fb <- runQuery selectFullBooks
@@ -185,3 +187,18 @@ downloadEndpoint bid res = do
               ]
               fullPath
               Nothing
+
+fortuneEndpoint :: (Response -> IO ResponseReceived) -> App ResponseReceived
+fortuneEndpoint res = do
+  books <- runQuery $ selectBooks
+
+  let 
+    payload =
+      map (\(BookT bid title _ _ _) ->
+        object
+          [ "id"    .= bid
+          , "title" .= title
+          ]
+      ) books
+  
+  liftIO $ respondJson res status200 payload
