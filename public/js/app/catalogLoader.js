@@ -64,6 +64,11 @@ class CatalogLoader {
           bus.emit(BUS_EVENTS.UI.BOOK.CLICK, { id: book.id, el: card });
         });
 
+        card.addEventListener('mouseleave', () => {
+          bus.emit(BUS_EVENTS.UI.BOOK.LEAVE, { id: book.id, el: card });
+        });
+
+
         const img = document.createElement('img');
         img.src = book.cover;
         img.alt = `Обложка книги '${book.title}'`;

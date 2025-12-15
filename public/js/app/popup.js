@@ -7,6 +7,10 @@ class BookDetailsPopup {
     this.popupEl = null;   // сам плавающий блок
     this.anchorEl = null;  // элемент-карточка, рядом с которым показываем попап
     this.visible = false;
+
+    this.hoverOnAnchor = false;
+    this.hoverOnPopup = false;
+    this.hideTimer = null;
   }
 
   init() {
@@ -20,6 +24,14 @@ class BookDetailsPopup {
     bus.on(BUS_EVENTS.UI.BOOK.HOVER, ({ el }) => {
       if (el instanceof HTMLElement) {
         this.anchorEl = el;
+        this.hoverOnAnchor = true;
+      }
+    });
+
+    bus.on(BUS_EVENTS.UI.BOOK.LEAVE, ({ el }) => {
+      if (el instanceof HTMLElement && el === this.anchorEl) {
+        this.hoverOnAnchor = false;
+        this.maybeHide();
       }
     });
 
@@ -58,6 +70,19 @@ class BookDetailsPopup {
     close.style.cursor = 'pointer';
 
     close.addEventListener('click', () => this.hide());
+
+    popup.addEventListener('mouseenter', () => {
+      this.hoverOnPopup = true;
+      if (this.hideTimer) {
+        clearTimeout(this.hideTimer);
+        this.hideTimer = null;
+      }
+    });
+
+    popup.addEventListener('mouseleave', () => {
+      this.hoverOnPopup = false;
+      this.maybeHide();
+    });
 
     popup.appendChild(close);
 
@@ -129,10 +154,31 @@ class BookDetailsPopup {
     this.visible = true;
   }
 
+  maybeHide() {
+    if (this.hideTimer) clearTimeout(this.hideTimer);
+
+    // небольшая задержка, чтобы успеть перейти курсором с карточки на попап
+    this.hideTimer = setTimeout(() => {
+      this.hideTimer = null;
+      if (!this.hoverOnAnchor && !this.hoverOnPopup) {
+        this.hide();
+      }
+    }, 120);
+  }
+
+
   hide() {
     if (!this.popupEl) return;
     this.popupEl.style.display = 'none';
     this.visible = false;
+
+    this.hoverOnAnchor = false;
+    this.hoverOnPopup = false;
+
+    if (this.hideTimer) {
+      clearTimeout(this.hideTimer);
+      this.hideTimer = null;
+    }
   }
 
   positionNearAnchor() {

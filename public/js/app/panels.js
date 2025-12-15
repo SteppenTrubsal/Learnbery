@@ -1,6 +1,7 @@
 import { bus } from '../core/bus.js';
 import { BUS_EVENTS } from '../core/types.js';
 import { bookDetailsPopup } from './popup.js';
+import { fortuneWheel } from './fortune.js';
 
 class PanelManager {
   init() {
@@ -21,6 +22,7 @@ class PanelManager {
     bus.on(BUS_EVENTS.UI.NAV.GOTO, ({ panel }) => {
       bookDetailsPopup.hide();   // <-- закрываем попап при смене панели
       this.show(panel);
+      fortuneWheel.onPanelMaybeShown?.();
     });
 
     // начальный выбор
