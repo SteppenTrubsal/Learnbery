@@ -8,7 +8,6 @@ class PanelManager {
     this.panels = Array.from(document.querySelectorAll('.app-panel'));
     if (!this.panels.length) return;
 
-    // клики по меню
     document.querySelectorAll('[data-panel]').forEach((el) => {
       el.addEventListener('click', (e) => {
         e.preventDefault();
@@ -18,14 +17,12 @@ class PanelManager {
       });
     });
 
-    // слушаем шину
     bus.on(BUS_EVENTS.UI.NAV.GOTO, ({ panel }) => {
-      bookDetailsPopup.hide();   // <-- закрываем попап при смене панели
+      bookDetailsPopup.hide();
       this.show(panel);
       fortuneWheel.onPanelMaybeShown?.();
     });
 
-    // начальный выбор
     const initial = (location.hash || '#home').slice(1);
     this.show(initial);
   }

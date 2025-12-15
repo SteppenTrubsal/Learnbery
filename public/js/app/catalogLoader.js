@@ -23,13 +23,9 @@ class CatalogLoader {
     this.container = document.getElementById('book-list');
     if (!this.container) return;
 
-    // Слушаем изменения фильтров (panel/форма)
     bus.on(BUS_EVENTS.UI.CATALOG.FILTER_CHANGED, (filters) => {
       this.applyFilters(filters);
     });
-
-    // первая загрузка (если фильтры не пушнутся сами)
-    // this.loadMore();
 
     window.addEventListener('scroll', () => {
       if (this.loading || this.allLoaded) return;
@@ -54,12 +50,10 @@ class CatalogLoader {
         card.className = 'card h-100';
         card.dataset.bookId = String(book.id);
 
-// hover
         card.addEventListener('mouseenter', () => {
           bus.emit(BUS_EVENTS.UI.BOOK.HOVER, { id: book.id, el: card });
         });
 
-// click (оставим на всякий)
         card.addEventListener('click', () => {
           bus.emit(BUS_EVENTS.UI.BOOK.CLICK, { id: book.id, el: card });
         });
@@ -67,7 +61,6 @@ class CatalogLoader {
         card.addEventListener('mouseleave', () => {
           bus.emit(BUS_EVENTS.UI.BOOK.LEAVE, { id: book.id, el: card });
         });
-
 
         const img = document.createElement('img');
         img.src = book.cover;
@@ -93,13 +86,11 @@ class CatalogLoader {
       year_to: filters.year_to ?? null,
     };
 
-    // Сброс каталога
     this.offset = 0;
     this.allLoaded = false;
     this.loading = false;
     this.container.innerHTML = '';
 
-    // Первая страница по новым фильтрам
     this.loadMore();
   }
 

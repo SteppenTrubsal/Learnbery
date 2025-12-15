@@ -14,8 +14,8 @@ export class FortuneWheel {
     this.labels = [];
     this.ids = [];
 
-    this.rotationDeg = 0;        // сохранённый (0..360)
-    this.rotationDegDisplay = 0; // рисуемый (может быть > 360)
+    this.rotationDeg = 0;
+    this.rotationDegDisplay = 0;
     this.isSpinning = false;
 
     this.canvas = null;
@@ -26,10 +26,8 @@ export class FortuneWheel {
     this.isBuilt = false;
   }
 
-  // Если вдруг у тебя Chart.js v2 — включи радианы:
-  // return (deg * Math.PI) / 180;
   toChartRotation(deg) {
-    return deg; // v3/v4: градусы
+    return deg;
   }
 
   init() {
@@ -67,9 +65,9 @@ export class FortuneWheel {
       this.result.textContent = 'Нажми кнопку, чтобы выбрать книгу случайно.';
       this.btn.addEventListener('click', () => this.spin());
     } else {
-      this.rotationDegDisplay = this.rotationDeg; // рисуем с сохранённого
-this.chart.data.datasets[0].rotation = this.rotationDegDisplay;
-this.chart.update('none');
+      this.rotationDegDisplay = this.rotationDeg;
+      this.chart.data.datasets[0].rotation = this.rotationDegDisplay;
+      this.chart.update('none');
     }
   }
 
@@ -109,68 +107,60 @@ this.chart.update('none');
     });
   }
 
-spin() {
-  if (!this.chart || this.isSpinning) return;
+  spin() {
+    if (!this.chart || this.isSpinning) return;
 
-  const n = this.labels.length;
-  if (n === 0) return;
+    const n = this.labels.length;
+    if (n === 0) return;
 
-  this.isSpinning = true;
-  this.btn.disabled = true;
-  this.result.textContent = 'Крутим…';
+    this.isSpinning = true;
+    this.btn.disabled = true;
+    this.result.textContent = 'Крутим…';
 
-  const sectorDeg = 360 / n;
+    const sectorDeg = 360 / n;
 
-  // стартуем от того, что реально нарисовано сейчас
-  const startDeg = this.rotationDegDisplay || 0;
+    const startDeg = this.rotationDegDisplay || 0;
 
-  const randomEndDeg = Math.random() * 360;
-  const extraSpins = 8 + Math.floor(Math.random() * 10); // 8..17
-  const endDeg = startDeg + extraSpins * 360 + randomEndDeg;
+    const randomEndDeg = Math.random() * 360;
+    const extraSpins = 8 + Math.floor(Math.random() * 10);
+    const endDeg = startDeg + extraSpins * 360 + randomEndDeg;
 
-  const duration = 3200;
-  const t0 = performance.now();
+    const duration = 3200;
+    const t0 = performance.now();
 
-  const tick = (now) => {
-    const t = Math.min(1, (now - t0) / duration);
-    const k = easeOutQuart(t);
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / duration);
+      const k = easeOutQuart(t);
 
-    const curDeg = startDeg + (endDeg - startDeg) * k;
+      const curDeg = startDeg + (endDeg - startDeg) * k;
 
-    // рисуем "как есть", без нормализации — чтобы не было скачка
-    this.rotationDegDisplay = curDeg;
-    this.chart.data.datasets[0].rotation = this.rotationDegDisplay;
-    this.chart.update('none');
+      this.rotationDegDisplay = curDeg;
+      this.chart.data.datasets[0].rotation = this.rotationDegDisplay;
+      this.chart.update('none');
 
-    if (t < 1) {
-      requestAnimationFrame(tick);
-      return;
-    }
+      if (t < 1) {
+        requestAnimationFrame(tick);
+        return;
+      }
 
-    // === ФИНИШ ===
-    // сохраняем нормализованный угол, но НЕ применяем его к chart (иначе будет отскок)
-    const rot = normDeg(this.rotationDegDisplay);
-    this.rotationDeg = rot;
+      const rot = normDeg(this.rotationDegDisplay);
+      this.rotationDeg = rot;
 
-    // стрелка строго сверху (12 часов)
-    const pointerDeg = 0;
+      const pointerDeg = 0;
 
-    // что под стрелкой:
-    const topDeg = normDeg(pointerDeg - rot);
+      const topDeg = normDeg(pointerDeg - rot);
 
-    // epsilon чтобы на границе сектора не "перепрыгивало"
-    const eps = 1e-9;
-    const winnerIndex = Math.floor((topDeg + eps) / sectorDeg) % n;
+      const eps = 1e-9;
+      const winnerIndex = Math.floor((topDeg + eps) / sectorDeg) % n;
 
-    this.isSpinning = false;
-    this.btn.disabled = false;
+      this.isSpinning = false;
+      this.btn.disabled = false;
 
-    const title = this.labels[winnerIndex] || 'Без названия';
-    this.result.textContent = `Выпало: ${title}`;
-  };
-
-  requestAnimationFrame(tick);
-}
+      const title = this.labels[winnerIndex] || 'Без названия';
+      this.result.textContent = `Выпало: ${title}`;
+    };
+    requestAnimationFrame(tick);
+  }
 }
 
 export const fortuneWheel = new FortuneWheel();

@@ -14,7 +14,6 @@ class CatalogFilters {
   init() {
     this.qEl = document.getElementById('catalog-q');
 
-    // INPUT + DATALIST
     this.authorEl = document.getElementById('catalog-author');
     this.genreEl = document.getElementById('catalog-genre');
     this.authorListEl = document.getElementById('catalog-author-list');
@@ -26,10 +25,9 @@ class CatalogFilters {
 
     if (!this.qEl || !this.authorEl || !this.genreEl) return;
 
-    this.authorByName = new Map(); // lower(name) -> id
+    this.authorByName = new Map();
     this.genreByName = new Map();
 
-    // ВАЖНО: у тебя loader ходит на /books, значит фильтры тоже берём без /api
     ajaxClient.request({
       path: '/catalog/filters',
       method: 'GET',
@@ -103,7 +101,6 @@ class CatalogFilters {
     const authorId = this.resolveExactId(authorText, this.authorByName);
     const genreId  = this.resolveExactId(genreText,  this.genreByName);
 
-    // если точного совпадения нет — шлём текстовый фильтр author_q/genre_q
     const filters = {
       q,
 

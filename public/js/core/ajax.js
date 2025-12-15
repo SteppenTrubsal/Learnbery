@@ -6,13 +6,6 @@ class AjaxClient {
     this.baseUrl = baseUrl;
   }
 
-  /**
-   * options:
-   *   path:   '/books/42'
-   *   method: 'GET' | 'POST' | ...
-   *   payload: объект, который пойдет в body (для не-GET)
-   *   type:  логический тип сообщения, например 'book:details'
-   */
   async request({ path, method = 'GET', payload = null, type }) {
     const url = this.baseUrl + path;
 

@@ -24,10 +24,10 @@ function initApp() {
 
 window.initApp = initApp;
 
-window.onBookClick = function (bookId, el) {
-  if (!bookId) return;
-  bus.emit(BUS_EVENTS.UI.BOOK.CLICK, { id: bookId, el });
-};
+// window.onBookClick = function (bookId, el) {
+//   if (!bookId) return;
+//   bus.emit(BUS_EVENTS.UI.BOOK.CLICK, { id: bookId, el });
+// };
 
 window.onBookHover = function (bookId, el) {
   if (!bookId) return;

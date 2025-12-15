@@ -4,8 +4,8 @@ import { BUS_EVENTS, msgEvent } from '../core/types.js';
 
 class BookDetailsPopup {
   constructor() {
-    this.popupEl = null;   // сам плавающий блок
-    this.anchorEl = null;  // элемент-карточка, рядом с которым показываем попап
+    this.popupEl = null;
+    this.anchorEl = null;
     this.visible = false;
 
     this.hoverOnAnchor = false;
@@ -14,12 +14,11 @@ class BookDetailsPopup {
   }
 
   init() {
-    // запоминаем последнюю карточку, по которой кликнули
-    bus.on(BUS_EVENTS.UI.BOOK.CLICK, ({ el }) => {
-      if (el instanceof HTMLElement) {
-        this.anchorEl = el;
-      }
-    });
+    // bus.on(BUS_EVENTS.UI.BOOK.CLICK, ({ el }) => {
+    //   if (el instanceof HTMLElement) {
+    //     this.anchorEl = el;
+    //   }
+    // });
 
     bus.on(BUS_EVENTS.UI.BOOK.HOVER, ({ el }) => {
       if (el instanceof HTMLElement) {
@@ -35,7 +34,6 @@ class BookDetailsPopup {
       }
     });
 
-    // слушаем ответ от сервера с деталями книги
     bus.on(msgEvent('book:details'), ({ payload }) => {
       this.show(payload);
     });
@@ -57,7 +55,6 @@ class BookDetailsPopup {
     popup.style.maxHeight = '80vh';
     popup.style.overflowY = 'auto';
 
-    // простая кнопка закрытия в углу
     const close = document.createElement('button');
     close.type = 'button';
     close.innerText = '×';
@@ -157,7 +154,6 @@ class BookDetailsPopup {
   maybeHide() {
     if (this.hideTimer) clearTimeout(this.hideTimer);
 
-    // небольшая задержка, чтобы успеть перейти курсором с карточки на попап
     this.hideTimer = setTimeout(() => {
       this.hideTimer = null;
       if (!this.hoverOnAnchor && !this.hoverOnPopup) {
@@ -165,7 +161,6 @@ class BookDetailsPopup {
       }
     }, 120);
   }
-
 
   hide() {
     if (!this.popupEl) return;
@@ -188,16 +183,12 @@ class BookDetailsPopup {
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
 
-    // делаем попап по ширине как карточка
     this.popupEl.style.width = rect.width + 'px';
-    // высоту сильно не ограничиваем, но можно подрезать по maxHeight через CSS
 
-    // позиционируем справа от карточки с небольшим отступом
     const gap = 16;
     let left = rect.right + gap + scrollX;
     let top = rect.top + scrollY;
 
-    // если не влезаем по ширине — попробуем показать слева
     const popupRect = this.popupEl.getBoundingClientRect();
     const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
 
@@ -205,7 +196,6 @@ class BookDetailsPopup {
       left = rect.left - popupRect.width - gap + scrollX;
     }
 
-    // чуть подстрахуемся по вертикали, чтобы не уходить за верх
     if (top < scrollY + 8) {
       top = scrollY + 8;
     }
