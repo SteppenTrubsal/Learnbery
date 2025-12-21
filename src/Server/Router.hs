@@ -77,7 +77,7 @@ booksEndpoint req res = do
     files <- liftIO $ safeListDir bookDir
 
     let
-      mPic  = findFirstByPrefix "pic." files
+      mPic  = findFirstByPrefix "cover." files
       mBook = findFirstByPrefix "file." files
 
       coverUrl =

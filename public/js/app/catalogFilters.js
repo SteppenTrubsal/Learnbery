@@ -48,9 +48,26 @@ class CatalogFilters {
 
     const emit = () => this.emitCurrent();
 
+    const onDatalistInput = (el, mapByName) => {
+      const text = (el.value || '').trim();
+      if (!text) {
+        this.emitCurrent();
+        return;
+      }
+
+      const id = this.resolveExactId(text, mapByName);
+      if (id != null) {
+        this.emitCurrent();
+      }
+    };
+
     this.qEl.addEventListener('input', debounce(emit, 250));
-    this.authorEl.addEventListener('input', debounce(emit, 200));
-    this.genreEl.addEventListener('input', debounce(emit, 200));
+
+    this.authorEl.addEventListener('input', () => onDatalistInput(this.authorEl, this.authorByName));
+    this.genreEl.addEventListener('input', () => onDatalistInput(this.genreEl, this.genreByName));
+    this.authorEl.addEventListener('change', emit);
+    this.genreEl.addEventListener('change', emit);
+
     if (this.yFromEl) this.yFromEl.addEventListener('change', emit);
     if (this.yToEl) this.yToEl.addEventListener('change', emit);
 

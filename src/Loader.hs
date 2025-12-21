@@ -41,8 +41,8 @@ loader = do
             putStrLn $ "  desc    = " <> T.unpack (biDesc bi)
             putStrLn $ "  year    = " <> show (biYear bi)
             putStrLn $ "  pages   = " <> show (biPages bi)
-            putStrLn $ "  authors = " <> show (biAuthors bi)
-            putStrLn $ "  genres  = " <> show (biGenres bi)
+            putStrLn $ "  authors = " <> T.unpack (T.intercalate ", " (biAuthors bi))
+            putStrLn $ "  genres  = " <> T.unpack (T.intercalate ", " (biGenres bi))
       putStrLn "Dry-run complete."
     else do
       conf <- loadConf

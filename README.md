@@ -5,7 +5,7 @@ Needed:
 - [x] Basic site  
 - [x] Prettify with fancy CSS  
 - [x] Dynamics with JS  
-- [ ] Fancy JS  
+- [x] Fancy JS  
 - [x] Adding postgre  
 - [x] Search  
 - [x] AJAX  

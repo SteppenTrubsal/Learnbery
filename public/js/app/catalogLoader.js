@@ -29,9 +29,14 @@ class CatalogLoader {
 
     window.addEventListener('scroll', () => {
       if (this.loading || this.allLoaded) return;
+
       const nearBottom =
-        window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 100;
-      if (nearBottom) this.loadMore();
+        window.innerHeight + window.pageYOffset >=
+        document.body.offsetHeight - 100;
+
+      if (nearBottom) {
+        this.loadMore();
+      }
     });
 
     bus.on(msgEvent('books:list'), ({ payload }) => {
@@ -43,39 +48,42 @@ class CatalogLoader {
       }
 
       for (const book of payload) {
-        const col = document.createElement('article');
-        col.className = 'col';
+        const item = document.createElement('article');
+        item.className = 'book-item';
 
         const card = document.createElement('div');
-        card.className = 'card h-100';
+        card.className = 'card';
         card.dataset.bookId = String(book.id);
 
         card.addEventListener('mouseenter', () => {
           bus.emit(BUS_EVENTS.UI.BOOK.HOVER, { id: book.id, el: card });
         });
 
-        card.addEventListener('click', () => {
-          bus.emit(BUS_EVENTS.UI.BOOK.CLICK, { id: book.id, el: card });
-        });
-
         card.addEventListener('mouseleave', () => {
           bus.emit(BUS_EVENTS.UI.BOOK.LEAVE, { id: book.id, el: card });
         });
 
+        // card.addEventListener('click', () => {
+        //   bus.emit(BUS_EVENTS.UI.BOOK.CLICK, { id: book.id, el: card });
+        // });
+
         const img = document.createElement('img');
         img.src = book.cover;
         img.alt = `Обложка книги '${book.title}'`;
-        img.className = 'img-fluid';
 
         card.appendChild(img);
-        col.appendChild(card);
-        this.container.appendChild(col);
+        item.appendChild(card);
+        this.container.appendChild(item);
       }
 
       this.offset += payload.length;
-      if (payload.length < this.limit) this.allLoaded = true;
+
+      if (payload.length < this.limit) {
+        this.allLoaded = true;
+      }
     });
   }
+
 
   applyFilters(filters) {
     this.filters = {

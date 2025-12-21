@@ -14,12 +14,6 @@ class BookDetailsPopup {
   }
 
   init() {
-    // bus.on(BUS_EVENTS.UI.BOOK.CLICK, ({ el }) => {
-    //   if (el instanceof HTMLElement) {
-    //     this.anchorEl = el;
-    //   }
-    // });
-
     bus.on(BUS_EVENTS.UI.BOOK.HOVER, ({ el }) => {
       if (el instanceof HTMLElement) {
         this.anchorEl = el;
@@ -57,7 +51,7 @@ class BookDetailsPopup {
 
     const close = document.createElement('button');
     close.type = 'button';
-    close.innerText = '×';
+    close.innerText = 'x';
     close.style.position = 'absolute';
     close.style.top = '0.25rem';
     close.style.right = '0.5rem';
@@ -111,6 +105,7 @@ class BookDetailsPopup {
     const genresText = genresArr.length ? genresArr.join(', ') : '—';
 
     const year = book.year || '';
+    const pages = book.pages || '';
     const description = book.description || book.desc || 'Описание отсутствует';
 
     const downloadUrl = book.downloadUrl || null;
@@ -138,6 +133,14 @@ class BookDetailsPopup {
         year
           ? `<p style="margin: 0 0 0.25rem 0;">
                <strong>Год издания:</strong> ${escapeHtml(String(year))}
+            </p>`
+          : ''
+      }
+
+      ${
+        pages
+          ? `<p style="margin: 0 0 0.25rem 0;">
+               <strong>Кол-во страниц:</strong> ${escapeHtml(String(pages))}
             </p>`
           : ''
       }
@@ -176,28 +179,62 @@ class BookDetailsPopup {
     }
   }
 
+    // this.popupEl.style.width = 2 * rect.width + 'px';
+
+  // positionNearAnchor() {
+  //   if (!this.anchorEl || !this.popupEl) return;
+
+  //   const rect = this.anchorEl.getBoundingClientRect();
+  //   const scrollX = window.scrollX || window.pageXOffset;
+  //   const scrollY = window.scrollY || window.pageYOffset;
+
+  //   this.popupEl.style.width = 2 * rect.width + 'px';
+
+  //   const gap = 16;
   positionNearAnchor() {
     if (!this.anchorEl || !this.popupEl) return;
 
     const rect = this.anchorEl.getBoundingClientRect();
+
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
 
-    this.popupEl.style.width = rect.width + 'px';
+    const viewportWidth =
+      document.documentElement.clientWidth || window.innerWidth;
+    const viewportHeight =
+      document.documentElement.clientHeight || window.innerHeight;
 
     const gap = 16;
-    let left = rect.right + gap + scrollX;
-    let top = rect.top + scrollY;
 
+    this.popupEl.style.width = 2 * rect.width + 'px';
     const popupRect = this.popupEl.getBoundingClientRect();
-    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+
+    let left = rect.right + gap + scrollX;
 
     if (left + popupRect.width > viewportWidth - 8) {
       left = rect.left - popupRect.width - gap + scrollX;
     }
 
+    if (left < scrollX + 8) {
+      left = scrollX + 8;
+    }
+
+    if (left + popupRect.width > scrollX + viewportWidth - 8) {
+      left = scrollX + viewportWidth - popupRect.width - 8;
+    }
+
+    let top = rect.top + scrollY;
+
+    if (top + popupRect.height > scrollY + viewportHeight - 8) {
+      top = rect.bottom + scrollY - popupRect.height;
+    }
+
     if (top < scrollY + 8) {
       top = scrollY + 8;
+    }
+
+    if (top + popupRect.height > scrollY + viewportHeight - 8) {
+      top = scrollY + viewportHeight - popupRect.height - 8;
     }
 
     this.popupEl.style.left = `${left}px`;
