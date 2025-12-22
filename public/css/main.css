@@ -81,3 +81,33 @@ body {
   object-fit: cover;
   display: block;
 }
+
+#title-search-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.search-book__card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+}
+
+.search-book__img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.search-book__title {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+mark.hl {
+  background: transparent;
+  color: #d64045;
+  font-weight: 600;
+}

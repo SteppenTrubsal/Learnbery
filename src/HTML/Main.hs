@@ -32,6 +32,8 @@ siteHeader =
         li_ [class_ "nav-item"] $
           a_ [class_ "nav-link text-dark", href_ "#catalog", makeAttribute "data-panel" "catalog"] "Каталог"
         li_ [class_ "nav-item"] $
+          a_ [ class_ "nav-link text-dark", href_ "#search", makeAttribute "data-panel" "search"] "Поиск"
+        li_ [class_ "nav-item"] $
           a_ [class_ "nav-link text-dark", href_ "#about", makeAttribute "data-panel" "about"] "О нас"
         li_ [class_ "nav-item"] $
           a_ [class_ "nav-link text-dark", href_ "#contact", makeAttribute "data-panel" "contact"] "Контакты"
@@ -45,6 +47,24 @@ mainContent =
     section_ [id_ "home", class_ "app-panel is-active"] $ do
       h1_ [class_ "display-6 mb-3"] "Главная"
       p_ [class_ "lead"] "Добро пожаловать в онлайн библиотеку. Для навигации - наведите мышью на меню навигации сверху."
+
+    section_ [id_ "search", class_ "app-panel mb-5"] $ do
+      h2_ [class_ "h2 mb-4"] "Поиск по названию"
+
+      div_ [class_ "row mb-4"] $ do
+        div_ [class_ "col-12 col-lg-8"] $ do
+          label_ [class_ "form-label", for_ "title-search-q"] "Название"
+          input_
+            [ id_ "title-search-q"
+            , class_ "form-control"
+            , type_ "search"
+            , placeholder_ "Введите часть названия…"
+            , autocomplete_ "off"
+            ]
+
+      div_ [ id_ "title-search-results"
+        , class_ "title-search-results"
+        ] mempty
 
     section_ [id_ "fortune", class_ "app-panel"] $ do
       h2_ [class_ "h2 mb-4"] "Фортуна"
@@ -110,6 +130,16 @@ mainContent =
     section_ [id_ "about", class_ "app-panel"] $ do
       h2_ [class_ "h2 mb-4"] "О нас"
       p_ "Небольшой учебный проектик. Особо больше нечего сказать"
+
+      button_
+        [ makeAttribute "onclick" "alert('Это встроенный JavaScript')"
+        ]
+        "Кнопка со встроенным JS"
+
+      a_
+        [ href_ "javascript:alert('JavaScript через URL-схему')"
+        ]
+        "JS через URL-схему"
 
     section_ [id_ "contact", class_ "app-panel"] $ do
       h2_ [class_ "h2 mb-4"] "Контакты"

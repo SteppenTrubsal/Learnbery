@@ -10,6 +10,8 @@ import { catalogFilters } from './catalogFilters.js';
 
 import { fortuneWheel } from './fortune.js';
 
+import { titleSearchPage } from './search.js';
+
 function initApp() {
   router.init();
   protocolHub.init();
@@ -20,6 +22,8 @@ function initApp() {
   catalogFilters.init();
 
   fortuneWheel.init();
+
+  titleSearchPage.init()
 }
 
 window.initApp = initApp;

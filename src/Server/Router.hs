@@ -41,6 +41,7 @@ getRouter req res = do
     ["api", "books"] -> booksEndpoint req res
     ["api", "books", bidTxt] -> bookDetailsEndpointText bidTxt res
     ["api", "catalog", "filters"] -> catalogFiltersEndpoint res
+    ["api", "book", "search"] -> searchEndpoint req res
 
     ["r", "book", bid, "download"] -> downloadEndpoint bid res
 
@@ -65,7 +66,7 @@ booksEndpoint req res = do
       yFrom   = qInt32 req "year_from"
       yTo     = qInt32 req "year_to"
 
-  books <- runQuery $ selectBooksPagedFiltered off lim mq ma mg mAuthorQ mGenreQ yFrom yTo
+  books <- runQuery $ selectBooksPagedFilteredT off lim mq ma mg mAuthorQ mGenreQ yFrom yTo
 
   conf <- asks config
   let resourceDir = conf ^. common . resDir
@@ -201,4 +202,42 @@ fortuneEndpoint res = do
           ]
       ) books
   
+  liftIO $ respondJson res status200 payload
+
+searchEndpoint :: Request -> (Response -> IO ResponseReceived) -> App ResponseReceived
+searchEndpoint req res = do
+  let off   = fromMaybe 0 (qInt req "offset")
+      lim   = fromMaybe 20 (qInt req "limit")
+      mq      = qText req "q"
+
+  books <- runQuery $ selectBooksByTitlePaged off lim mq
+
+  conf <- asks config
+  let resourceDir = conf ^. common . resDir
+
+  payload <- liftIO $ forM books $ \(BookT bid title _ _ _) -> do
+    let
+      bidStr  = show bid
+      bookDir = resourceDir </> bidStr
+    files <- liftIO $ safeListDir bookDir
+
+    let
+      mPic  = findFirstByPrefix "cover." files
+      mBook = findFirstByPrefix "file." files
+
+      coverUrl =
+        case mPic of
+          Just picFile -> T.pack (bidStr </> picFile)
+          Nothing      -> "https://placehold.co/200x300/cccccc/ffffff?text=" <> title
+
+      downloadUrl =
+        case mBook of
+          Just _        -> Just (T.pack ("/r/book/" <> bidStr <> "/download"))
+          Nothing       -> Nothing
+    pure $ object
+      [ "id"          .= bid
+      , "title"       .= title
+      , "cover"       .= coverUrl
+      , "downloadUrl" .= downloadUrl
+      ]
   liftIO $ respondJson res status200 payload
