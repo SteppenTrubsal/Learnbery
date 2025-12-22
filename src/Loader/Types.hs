@@ -8,11 +8,15 @@ data Mode
   | File FilePath
   deriving (Show)
 
-
-data Options = Options
-  { optMode   :: Mode
-  , optDryRun :: Bool
+data InsertOptions = InsertOptions
+  { insMode   :: Mode
+  , insDryRun :: Bool
   } deriving (Show)
+
+data Action
+  = Insert InsertOptions
+  | Delete Text
+  deriving (Show)
 
 data BookInput = BookInput
   { biTitle   :: Text

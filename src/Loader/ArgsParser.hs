@@ -15,9 +15,9 @@ modeParser =
   )
   <|> pure Interactive
 
-optionsParser :: Parser Options
-optionsParser =
-  Options
+insertOptionsParser :: Parser InsertOptions
+insertOptionsParser =
+  InsertOptions
     <$> modeParser
     <*> switch
           (  long "dry-run"
@@ -25,9 +25,24 @@ optionsParser =
           <> help "Proof parsing"
           )
 
-optsInfo :: ParserInfo Options
+actionParser :: Parser Action
+actionParser =
+  hsubparser
+    ( command "insert"
+        (info
+          (Insert <$> insertOptionsParser)
+          (progDesc "Insert books")
+        )
+   <> command "delete"
+        (info
+          (Delete <$> argument str (metavar "NAME"))
+          (progDesc "Delete book by name")
+        )
+    )
+
+optsInfo :: ParserInfo Action
 optsInfo =
-  info (optionsParser <**> helper)
+  info (actionParser <**> helper)
     (  fullDesc
     <> progDesc "Load books into DB"
     <> header   "Loader — books loader utility"

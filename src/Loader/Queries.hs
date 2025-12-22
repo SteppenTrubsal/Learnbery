@@ -3,6 +3,9 @@ module Loader.Queries where
 import           Control.Lens
 
 import           Data.Text              (Text)
+import           Data.Maybe
+import           Control.Monad
+import           Data.Foldable (traverse_)
 import           Database.Beam
 import           Database.Beam.Postgres
 import           Database.Beam.Schema.Tables
@@ -117,3 +120,104 @@ printTableNames = do
     putStrLn $ "bookAuthors: " ++ show (_book_authors libraryDb ^. dbEntityDescriptor . dbEntityName)
     putStrLn $ "bookGenres:  " ++ show (_book_genres  libraryDb ^. dbEntityDescriptor . dbEntityName)
     putStrLn $ "genres:      " ++ show (_genres      libraryDb ^. dbEntityDescriptor . dbEntityName)
+
+findBookByTitleMin :: Text -> Pg (Maybe Book)
+findBookByTitleMin t =
+  runSelectReturningOne $
+    select $
+      limit_ 1 $
+      orderBy_ (asc_ . _bookId) $
+      filter_ (\b -> _title b ==. val_ t) $
+      all_ (_books libraryDb)
+
+findTouchedAuthors :: BookId -> Pg [AuthorId]
+findTouchedAuthors bookId =
+  runSelectReturningList $
+    select $
+      do
+        ba <- all_ (_book_authors libraryDb)
+        guard_ (_baBookId ba ==. val_ bookId)
+        pure (_baAuthorId ba)
+
+findTouchedGenres :: BookId -> Pg [GenreId]
+findTouchedGenres bookId =
+  runSelectReturningList $
+    select $
+      do
+        bg <- all_ (_book_genres libraryDb)
+        guard_ (_bgBookId bg ==. val_ bookId)
+        pure (_bgGenreId bg)
+
+existsAuthorUsage :: AuthorId -> Pg Bool
+existsAuthorUsage aid = do
+  mb <- runSelectReturningOne $
+    select $
+      pure $
+        exists_ $
+          do
+            ba <- all_ (_book_authors libraryDb)
+            guard_ (_baAuthorId ba ==. val_ aid)
+            pure (_baAuthorId ba)
+  pure (fromMaybe False mb)
+
+existsGenreUsage :: GenreId -> Pg Bool
+existsGenreUsage gid = do
+  mb <- runSelectReturningOne $
+    select $
+      pure $
+        exists_ $
+          do
+            bg <- all_ (_book_genres libraryDb)
+            guard_ (_bgGenreId bg ==. val_ gid)
+            pure (_bgGenreId bg)
+  pure (fromMaybe False mb)
+
+deleteBookAuthors :: BookId -> Pg ()
+deleteBookAuthors bookId =
+  runDelete $
+    delete (_book_authors libraryDb)
+      (\ba -> _baBookId ba ==. val_ bookId)
+
+deleteBookGenres :: BookId -> Pg ()
+deleteBookGenres bookId =
+  runDelete $
+    delete (_book_genres libraryDb)
+      (\bg -> _bgBookId bg ==. val_ bookId)
+
+deleteBook :: BookId -> Pg ()
+deleteBook bookId =
+  runDelete $
+    delete (_books libraryDb)
+      (\b -> primaryKey b ==. val_ bookId)
+
+deleteAuthorIfOrphan :: AuthorId -> Pg ()
+deleteAuthorIfOrphan aid = do
+  used <- existsAuthorUsage aid
+  unless used $
+    runDelete $
+      delete (_authors libraryDb)
+        (\a -> primaryKey a ==. val_ aid)
+
+deleteGenreIfOrphan :: GenreId -> Pg ()
+deleteGenreIfOrphan gid = do
+  used <- existsGenreUsage gid
+  unless used $
+    runDelete $
+      delete (_genres libraryDb)
+        (\g -> primaryKey g ==. val_ gid)
+
+deleteBooksByTitle :: Text -> Pg ()
+deleteBooksByTitle title = do
+  mbBook <- findBookByTitleMin title
+  forM_ mbBook $ \book -> do
+    let bookId = primaryKey book
+
+    authors <- findTouchedAuthors bookId
+    genres  <- findTouchedGenres bookId
+
+    deleteBookAuthors bookId
+    deleteBookGenres  bookId
+    deleteBook        bookId
+
+    traverse_ deleteAuthorIfOrphan authors
+    traverse_ deleteGenreIfOrphan  genres
